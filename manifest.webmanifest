@@ -1,0 +1,14 @@
+{
+  "name": "Getijden",
+  "short_name": "Getijden",
+  "description": "Een dag in drie uren.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#E4E5E1",
+  "theme_color": "#E4E5E1",
+  "icons": [
+    { "src": "/kruis-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/kruis-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
