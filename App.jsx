@@ -7,7 +7,7 @@ import { useState, useEffect, useRef } from "react";
    Signatuur: de getijdenband — de dag als één lijn
 ---------------------------------------------------------------- */
 
-const C = {
+const DAG = {
   bg: "#E4E5E1",
   paper: "#F1F1ED",
   ink: "#1A1F26",
@@ -18,11 +18,26 @@ const C = {
   brass: "#9C7C33",
 };
 
+const NACHT = {
+  bg: "#14171A",
+  paper: "#1B1F23",
+  ink: "#E6E3DB",
+  soft: "#9BA1A8",
+  faint: "#6C737A",
+  line: "#2F353B",
+  oak: "#B99B77",
+  brass: "#C9A24E",
+};
+
+/* C wordt bij het wisselen van dag naar nacht bijgewerkt; alles leest hem
+   tijdens het renderen, dus de hele app kleurt mee. */
+const C = { ...DAG };
+
 const TIDES = [
   {
     id: "morgen",
     naam: "Morgen",
-    latijn: "Metten",
+    latijn: "Lauden",
     van: 4,
     tot: 11,
     verzen: [
@@ -39,21 +54,21 @@ const TIDES = [
     ],
     woorden: [
       { t: "Onze Vader, die in de hemelen zijt, uw Naam worde geheiligd; uw Koninkrijk kome; uw wil geschiede, gelijk in de hemel, zo ook op de aarde. Geef ons heden ons dagelijks brood.", bron: "Het gebed des Heeren" },
-      { t: "Heere, open mijn lippen, dan zal mijn mond uw lof verkondigen.", bron: "Psalm 51 \u00b7 begin van het getijde" },
-      { t: "Ik dank U, hemelse Vader, dat U mij deze nacht bewaard hebt. Bewaar mij ook vandaag, zodat mijn leven en mijn werk U behagen. In uw handen leg ik mijzelf, mijn huis en allen die ik liefheb.", bron: "Luther, Kleine Catechismus" },
-      { t: "U hebt mij gemaakt op U gericht, en mijn hart blijft onrustig totdat het rust vindt in U.", bron: "Augustinus" },
-      { t: "Christus met mij, Christus v\u00f3\u00f3r mij, Christus achter mij, Christus in mij, Christus onder mij, Christus boven mij, Christus aan mijn rechterhand, Christus aan mijn linkerhand.", bron: "Toegeschreven aan Patrick" },
+      { t: "Heere, open mijn lippen, dan zal mijn mond uw lof verkondigen.", bron: "Psalm 51" },
+      { t: "Ik dank U, hemelse Vader, dat U mij deze nacht bewaard hebt. Bewaar mij ook vandaag voor kwaad. In uw handen leg ik mijzelf en alles wat van mij is.", bron: "Luther" },
+      { t: "U hebt mij gemaakt tot U, en mijn hart is onrustig totdat het rust vindt in U.", bron: "Augustinus" },
+      { t: "Christus met mij, Christus v\u00f3\u00f3r mij, Christus achter mij, Christus in mij, Christus onder mij, Christus boven mij, Christus aan mijn rechterhand, Christus aan mijn linkerhand.", bron: "Patrick" },
       { t: "Geef mij, Heere, te weten wat ik weten moet, lief te hebben wat ik liefhebben moet, en te doen wat U behaagt.", bron: "Thomas a Kempis" },
       { t: "Mijn God, mijn Vader, U hebt mij deze dag gegeven. Geef dat ik hem in uw dienst besteed, en dat ik niets denk, zeg of doe dan tot uw eer.", bron: "Calvijn" },
-      { t: "Breng mij vandaag veilig door deze dag. Bewaar mij voor kwaad, en laat alles wat ik doe recht zijn voor U.", bron: "Oude morgencollecta" },
+      { t: "Breng mij vandaag veilig door deze dag. Bewaar mij voor kwaad, en laat alles wat ik doe recht zijn voor U.", bron: "Oud morgengebed" },
       { t: "Heere, leer mij bidden.", bron: "Lukas 11" },
-      { t: "Wijs mij de weg die ik gaan moet, want tot U hef ik mijn ziel op.", bron: "Psalm 143" },
+      { t: "Heere, ik ben het niet waard dat U bij mij binnenkomt; zeg \u00e9\u00e9n woord, en het is genoeg.", bron: "Matte\u00fcs 8" },
     ],
   },
   {
     id: "middag",
     naam: "Middag",
-    latijn: "Sext",
+    latijn: "Noon",
     van: 11,
     tot: 17,
     verzen: [
@@ -74,10 +89,10 @@ const TIDES = [
       { t: "Geef wat U beveelt, en beveel wat U wilt.", bron: "Augustinus" },
       { t: "Ziel van Christus, heilig mij. Binnen uw wonden verberg mij. Laat mij nooit van U gescheiden worden.", bron: "Anima Christi" },
       { t: "Heere, ik geloof; kom mijn ongeloof te hulp.", bron: "Markus 9" },
-      { t: "Doorgrond mij, o God, en ken mijn hart.", bron: "Psalm 139" },
+      { t: "Heere, U weet alles; U weet dat ik U liefheb.", bron: "Johannes 21" },
       { t: "Wees mij genadig, o God, naar uw goedertierenheid.", bron: "Psalm 51" },
       { t: "Heere, ik weet niet wat goed voor mij is; U weet het. Doe met mij wat U goeddunkt.", bron: "Thomas a Kempis" },
-      { t: "Kom, Heilige Geest, vervul mijn hart en ontsteek in mij het vuur van uw liefde.", bron: "Veni Sancte Spiritus" },
+      { t: "Kom, Heilige Geest, vervul mijn hart en ontsteek in mij het vuur van uw liefde.", bron: "Oud pinkstergebed" },
       { t: "Niet mijn wil, maar de uwe geschiede.", bron: "Lukas 22" },
     ],
   },
@@ -100,20 +115,21 @@ const TIDES = [
       { t: "Hij heeft zelf gezegd: Ik zal u beslist niet loslaten en u beslist niet verlaten.", b: "Hebree\u00ebn 13:5", bron: "naar het Grieks" },
     ],
     woorden: [
-      { t: "Ik dank U, hemelse Vader, dat U mij deze dag bewaard hebt. Vergeef mij alles waarin ik verkeerd deed, en bewaar mij ook deze nacht.", bron: "Luther, Kleine Catechismus" },
-      { t: "Bewaar mij, Heere, terwijl ik waak, en bescherm mij terwijl ik slaap, opdat ik wakend bij Christus mag zijn en slapend mag rusten in vrede.", bron: "Uit de completen" },
+      { t: "Ik dank U, hemelse Vader, dat U mij deze dag bewaard hebt. Vergeef mij alles waarin ik verkeerd deed, en bewaar mij ook deze nacht.", bron: "Luther" },
+      { t: "Bewaar mij, Heere, terwijl ik waak, en bescherm mij terwijl ik slaap, opdat ik wakend bij Christus mag zijn en slapend mag rusten in vrede.", bron: "Avondgetijde" },
       { t: "Heere, nu laat U uw dienaar gaan in vrede, naar uw woord, want mijn ogen hebben uw heil gezien.", bron: "Lofzang van Simeon" },
-      { t: "In uw handen, Heere, beveel ik mijn geest. U hebt mij verlost, getrouwe God.", bron: "Psalm 31 \u00b7 Lukas 23" },
-      { t: "Waak, Heere, bij wie deze nacht wakker liggen of huilen. Geef rust aan wie moe zijn, en ontferm U over wie verdriet hebben.", bron: "Toegeschreven aan Augustinus" },
-      { t: "Verlicht mijn duisternis, Heere, en bescherm mij deze nacht.", bron: "Oude avondcollecta" },
+      { t: "In uw handen, Heere, beveel ik mijn geest. U hebt mij verlost, getrouwe God.", bron: "Psalm 31" },
+      { t: "Waak, Heere, bij wie deze nacht wakker ligt. Geef rust aan wie moe is, en ontferm U over wie verdriet heeft.", bron: "Augustinus" },
+      { t: "Verlicht mijn duisternis, Heere, en bescherm mij deze nacht.", bron: "Oud avondgebed" },
       { t: "Geef mij rust in U, boven alles wat er te krijgen is.", bron: "Thomas a Kempis" },
       { t: "Doorgrond mij, o God, en ken mijn hart; zie of er bij mij een weg is die pijn doet, en leid mij op de eeuwige weg.", bron: "Psalm 139" },
-      { t: "Vergeef mij wat ik vandaag verkeerd deed, en wat ik heb nagelaten.", bron: "Oude schuldbelijdenis" },
+      { t: "Vergeef mij wat ik vandaag verkeerd deed, en wat ik heb nagelaten.", bron: "Oude belijdenis" },
       { t: "Blijf bij mij, Heere, want het wordt avond.", bron: "Lukas 24" },
     ],
   },
 ];
 
+const VERSIE = "1.1.1";
 const STORAGE_KEY = "getijden:v1";
 
 /* Werkt zowel in de Claude-artefactomgeving als op een gewone website. */
@@ -166,7 +182,10 @@ export default function Getijden() {
   const [newHabit, setNewHabit] = useState("");
   const [view, setView] = useState("nu");
   const [backup, setBackup] = useState(false);
+  const [nacht, setNacht] = useState(false);
   const saveTimer = useRef(null);
+
+  Object.assign(C, nacht ? NACHT : DAG);
 
   const today = dateKey(now);
   const nuTide = currentTide(now);
@@ -193,6 +212,13 @@ export default function Getijden() {
       if (!alive) return;
       const base = loaded && loaded.habits ? loaded : { habits: DEFAULT_HABITS, days: {}, boeken: [] };
       if (!base.boeken) base.boeken = [];
+      base.boeken.forEach((b) => {
+        if (!b.notities) b.notities = [];
+        if (b.notitie) {
+          b.notities.push({ id: "n" + Math.random().toString(36).slice(2), pagina: null, tekst: b.notitie, datum: b.begonnen || "" });
+          delete b.notitie;
+        }
+      });
       // oude opzet (één boek + plank) meenemen naar de nieuwe boekenkast
       if (base.boek) {
         base.boeken.push({ ...base.boek, id: "b" + Date.now(), status: "lezend", notitie: "" });
@@ -207,6 +233,7 @@ export default function Getijden() {
       setData(base);
       const d = base.days[dateKey(new Date())];
       setNote(d && d.note ? d.note : "");
+      setNacht(!!base.nacht);
       setStatus("klaar");
     })();
     return () => {
@@ -271,19 +298,37 @@ export default function Getijden() {
 
   /* ---------- afgeleide waarden ---------- */
   const rec = dayRecord(today);
-  const nowFrac = (now.getHours() * 60 + now.getMinutes()) / 1440;
+  // de band toont de drie uren als gelijke vakken; het ruitje schuift binnen het huidige vak
+  const posVanTijd = (d) => {
+    const u = d.getHours() + d.getMinutes() / 60;
+    const i = TIDES.findIndex((t) => u >= t.van && u < t.tot);
+    if (i === -1) return u < TIDES[0].van ? 0 : 1;
+    const t = TIDES[i];
+    return (i + (u - t.van) / (t.tot - t.van)) / TIDES.length;
+  };
+  const nowFrac = posVanTijd(now);
 
+  // de weken lopen van zondag tot zaterdag, zodat de letters ernaast kloppen
+  const eind = new Date(now);
+  const start = new Date(now);
+  start.setDate(start.getDate() - 55);
+  start.setDate(start.getDate() - start.getDay());
   const last56 = [];
-  for (let i = 55; i >= 0; i--) {
-    const d = new Date(now);
-    d.setDate(d.getDate() - i);
+  for (let d = new Date(start); d <= eind; d.setDate(d.getDate() + 1)) {
     const k = dateKey(d);
     const r = (data && data.days[k]) || null;
     const total = (data ? data.habits.length : 3) + 3;
     const hit = r ? r.done.length + r.tides.length + (r.note ? 1 : 0) + (r.gelezen ? 1 : 0) : 0;
-    last56.push({ k, d, v: total ? Math.min(1, hit / Math.max(1, total * 0.6)) : 0, hit });
+    last56.push({ k, d: new Date(d), v: total ? Math.min(1, hit / Math.max(1, total * 0.6)) : 0, hit });
   }
-  const aangeraakt = last56.slice(28).filter((x) => x.hit > 0).length;
+
+  const aangeraakt = last56.slice(-28).filter((x) => x.hit > 0).length;
+
+  const wisselDagNacht = () => {
+    const aan = !nacht;
+    setNacht(aan);
+    if (data) persist({ ...data, nacht: aan });
+  };
 
   if (!data) {
     return (
@@ -297,14 +342,28 @@ export default function Getijden() {
   }
 
   return (
-    <div style={page}>
+    <div style={{ ...page }}>
       <Fonts />
 
       <div style={{ maxWidth: 620, margin: "0 auto", padding: "0 22px 72px" }}>
         {/* ---------- kop ---------- */}
         <header style={{ paddingTop: 40, paddingBottom: 26 }}>
-          <div style={label}>
-            {now.toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long" })}
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+            <div style={{ ...label }}>
+              {now.toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long" })}
+            </div>
+            <button
+              onClick={wisselDagNacht}
+              title={nacht ? "Naar dag" : "Naar nacht"}
+              aria-label={nacht ? "Naar dag" : "Naar nacht"}
+              style={{ background: "none", border: "none", cursor: "pointer", padding: "0 0 8px 14px", lineHeight: 0, marginTop: -3 }}
+            >
+              {/* half licht, half donker; niets te verwarren met de maan van het avonduur */}
+              <svg width="17" height="17" viewBox="0 0 18 18" aria-hidden="true">
+                <circle cx="9" cy="9" r="7.4" fill="none" stroke={C.soft} strokeWidth="1.1" />
+                <path d="M9 1.6 A7.4 7.4 0 0 1 9 16.4 Z" fill={C.soft} />
+              </svg>
+            </button>
           </div>
           <h1
             style={{
@@ -355,7 +414,7 @@ export default function Getijden() {
         </nav>
 
         {view === "nu" && (
-          <section style={card}>
+          <section style={{ ...card }}>
             <div style={{ ...label, color: C.brass }}>
               {tide.naam} · {tide.latijn}
             </div>
@@ -376,7 +435,7 @@ export default function Getijden() {
             </blockquote>
             <div style={{ ...label, color: C.faint }}>{vers.b} · {vers.bron}</div>
 
-            <Breath />
+            <Breath nachtstand={nacht} />
 
             <Scheiding marge={24} />
 
@@ -395,16 +454,18 @@ export default function Getijden() {
             >
               {woord.t}
             </p>
-            <div style={{ ...label, fontSize: 9, letterSpacing: ".14em", color: C.faint, margin: "-14px 0 22px" }}>
+            <div style={{ ...label, fontSize: 9, letterSpacing: ".14em", color: C.faint, margin: "-14px 0 0" }}>
               {woord.bron}
             </div>
 
-            <div style={{ ...label, color: C.soft }}>Eén gedachte</div>
+            <Scheiding marge={24} />
+
+            <div style={{ ...label, color: C.soft }}>Ruimte voor gedachte:</div>
             <textarea
               value={note}
               onChange={(e) => saveNote(e.target.value)}
-              placeholder="Vijf regels is genoeg."
-              rows={4}
+              placeholder="Een paar regels is genoeg."
+              rows={3}
               style={{
                 width: "100%",
                 marginTop: 9,
@@ -431,9 +492,9 @@ export default function Getijden() {
                 width: "100%",
                 padding: "13px 0",
                 cursor: rec.tides.includes(tide.id) ? "default" : "pointer",
-                background: rec.tides.includes(tide.id) ? "transparent" : C.ink,
-                color: rec.tides.includes(tide.id) ? C.faint : C.paper,
-                border: "1px solid " + (rec.tides.includes(tide.id) ? C.line : C.ink),
+                background: "transparent",
+                color: rec.tides.includes(tide.id) ? C.faint : C.brass,
+                border: "1px solid " + (rec.tides.includes(tide.id) ? C.line : C.brass),
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -447,8 +508,13 @@ export default function Getijden() {
         )}
 
         {view === "gewoontes" && (
-          <section style={card}>
-            <div style={{ ...label, color: C.soft }}>Vandaag</div>
+          <section style={{ ...card }}>
+            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
+              <span style={{ ...label, color: C.soft }}>Vandaag</span>
+              <span style={{ ...label, fontSize: 10, color: rec.done.length ? C.brass : C.faint }}>
+                {rec.done.length} van {data.habits.length}
+              </span>
+            </div>
             <div style={{ marginTop: 14 }}>
               {data.habits.map((h) => {
                 const on = rec.done.includes(h.id);
@@ -483,6 +549,9 @@ export default function Getijden() {
                         fontSize: 19,
                         color: on ? C.soft : C.ink,
                         flex: 1,
+                        textDecoration: on ? "line-through" : "none",
+                        textDecorationColor: C.brass,
+                        textDecorationThickness: "1px",
                       }}
                     >
                       {h.naam}
@@ -532,7 +601,8 @@ export default function Getijden() {
               {editHabits ? "Klaar" : "Aanpassen"}
             </button>
 
-            <p style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 16, lineHeight: 1.55, color: C.soft, marginTop: 26, fontStyle: "italic" }}>
+            <Scheiding marge={24} />
+            <p style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 16, lineHeight: 1.55, color: C.soft, margin: 0, fontStyle: "italic" }}>
               Klein genoeg om te halen op je slechtste dag. Anders is het geen gewoonte maar een opdracht.
             </p>
           </section>
@@ -541,17 +611,17 @@ export default function Getijden() {
         {view === "lezen" && <Lezen data={data} persist={persist} today={today} />}
 
         {view === "terug" && (
-          <section style={card}>
+          <section style={{ ...card }}>
             <div style={{ ...label, color: C.soft }}>De laatste acht weken</div>
             <Heatmap cells={last56} />
             <p style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 19, lineHeight: 1.5, color: C.ink, marginTop: 22 }}>
-              Aangeraakt op {aangeraakt} van de laatste 28 dagen.
+              Aangeraakt op <span style={{ color: C.brass }}>{aangeraakt}</span> van de laatste 28 dagen.
             </p>
             <p style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 16, lineHeight: 1.55, color: C.soft, marginTop: 8, fontStyle: "italic" }}>
               Geen reeks om te breken. Alleen dagen waarop je er was.
             </p>
 
-            <div style={rule} />
+            <Scheiding marge={24} />
 
             <div style={{ ...label, color: C.soft }}>Gedachten</div>
             <div style={{ marginTop: 12 }}>
@@ -561,13 +631,13 @@ export default function Getijden() {
                 .filter((c) => data.days[c.k] && data.days[c.k].note)
                 .slice(0, 12)
                 .map((c) => (
-                  <div key={c.k} style={{ padding: "14px 0", borderBottom: "1px solid " + C.line }}>
-                    <div style={{ ...label, color: C.faint }}>
-                      {c.d.toLocaleDateString("nl-NL", { day: "numeric", month: "short" })}
-                    </div>
-                    <p style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 18, lineHeight: 1.55, color: C.ink, margin: "6px 0 0", whiteSpace: "pre-wrap" }}>
+                  <div key={c.k} style={{ padding: "12px 0 12px 14px", borderLeft: "1px solid " + C.brass, borderBottom: "1px solid " + C.line, marginBottom: 2 }}>
+                    <p style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 18, lineHeight: 1.55, color: C.ink, margin: 0, whiteSpace: "pre-wrap" }}>
                       {data.days[c.k].note}
                     </p>
+                    <div style={{ ...label, fontSize: 9, color: C.faint, marginTop: 6 }}>
+                      {c.d.toLocaleDateString("nl-NL", { day: "numeric", month: "long" })}
+                    </div>
                   </div>
                 ))}
               {!last56.some((c) => data.days[c.k] && data.days[c.k].note) && (
@@ -709,7 +779,8 @@ function Backup({ data, persist }) {
     r.onload = () => {
       try {
         const d = JSON.parse(r.result);
-        if (!d || !d.habits) throw new Error("geen getijden-bestand");
+        if (!d || typeof d !== "object" || (!d.habits && !d.days && !d.boeken))
+          throw new Error("geen getijden-bestand");
         setTerug(d);
         setMelding(null);
       } catch (err) {
@@ -721,7 +792,20 @@ function Backup({ data, persist }) {
   };
 
   const zetTerug = () => {
-    persist(terug);
+    // een oude of half ingevulde back-up mag de app niet laten struikelen
+    const veilig = {
+      habits: Array.isArray(terug.habits) && terug.habits.length ? terug.habits : DEFAULT_HABITS,
+      days: terug.days && typeof terug.days === "object" ? terug.days : {},
+      boeken: Array.isArray(terug.boeken) ? terug.boeken : [],
+      nacht: !!terug.nacht,
+    };
+    veilig.boeken = veilig.boeken.map((b) => ({
+      ...b,
+      dagen: b.dagen && typeof b.dagen === "object" ? b.dagen : {},
+      notities: Array.isArray(b.notities) ? b.notities : [],
+      status: ["lezend", "te-lezen", "uit"].includes(b.status) ? b.status : "te-lezen",
+    }));
+    persist(veilig);
     setTerug(null);
     setMelding("Terugzetten gelukt.");
   };
@@ -738,8 +822,8 @@ function Backup({ data, persist }) {
       </p>
 
       <div style={{ display: "flex", gap: 10 }}>
-        <button onClick={opslaan} style={{ ...label, fontSize: 11, letterSpacing: ".13em", flex: 1, background: C.ink, color: C.paper, border: "1px solid " + C.ink, padding: "11px 8px", cursor: "pointer" }}>
-          Opslaan
+        <button onClick={opslaan} style={{ ...hoofdknop, fontSize: 11, letterSpacing: ".13em", flex: 1, padding: "11px 8px" }}>
+          Bewaren
         </button>
         <button onClick={() => invoerRef.current && invoerRef.current.click()} style={{ ...label, fontSize: 11, letterSpacing: ".13em", flex: 1, background: "none", color: C.ink, border: "1px solid " + C.line, padding: "11px 8px", cursor: "pointer" }}>
           Terugzetten
@@ -754,7 +838,7 @@ function Backup({ data, persist }) {
             {(terug.boeken || []).length} boeken. Terugzetten overschrijft wat er nu in staat.
           </p>
           <div style={{ display: "flex", gap: 10 }}>
-            <button onClick={zetTerug} style={{ ...label, fontSize: 11, flex: 1, background: C.ink, color: C.paper, border: "1px solid " + C.ink, padding: "10px 8px", cursor: "pointer" }}>
+            <button onClick={zetTerug} style={{ ...hoofdknop, fontSize: 11, flex: 1, padding: "10px 8px" }}>
               Terugzetten
             </button>
             <button onClick={() => setTerug(null)} style={{ ...label, fontSize: 11, flex: 1, background: "none", color: C.soft, border: "1px solid " + C.line, padding: "10px 8px", cursor: "pointer" }}>
@@ -767,13 +851,20 @@ function Backup({ data, persist }) {
       {melding && (
         <p style={{ ...label, fontSize: 10, color: C.faint, marginTop: 14, letterSpacing: ".1em" }}>{melding}</p>
       )}
+
+      <div style={{ height: 1, background: C.line, margin: "30px 0 14px" }} />
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+        <span style={{ ...label, fontSize: 10, color: C.faint }}>Getijden</span>
+        <span style={{ ...label, fontSize: 10, color: C.faint }}>versie {VERSIE}</span>
+      </div>
     </div>
   );
 }
 
 /* ---------------- de boekenkast ---------------- */
 
-const LEEG_BOEK = { titel: "", paginas: "", perDag: "10" };
+const LEEG_BOEK = { titel: "", paginas: "" };
+const STANDAARD_PER_DAG = 10;
 
 function Lezen({ data, persist, today }) {
   const [open, setOpen] = useState(null);      // id van het boek in het venster
@@ -786,50 +877,65 @@ function Lezen({ data, persist, today }) {
   const teLezen = boeken.filter((b) => b.status === "te-lezen");
   const uit = boeken.filter((b) => b.status === "uit");
 
-  const zet = (id, velden) => {
+  /* Eén plek waar de kast verandert. Zo kan een knop nooit
+     een andere wijziging overschrijven. */
+  const bewerk = (fn, ookGelezen) => {
     const dagRec = data.days[today] || { done: [], note: "", tides: [] };
-    const gelezenVandaag = velden.dagen ? velden.dagen[today] != null : false;
     persist({
       ...data,
-      boeken: boeken.map((b) => (b.id === id ? { ...b, ...velden } : b)),
-      days: gelezenVandaag
-        ? { ...data.days, [today]: { ...dagRec, gelezen: true } }
-        : data.days,
+      boeken: fn(boeken),
+      days: ookGelezen ? { ...data.days, [today]: { ...dagRec, gelezen: true } } : data.days,
     });
   };
 
-  const nuLezen = (id) => {
-    persist({
-      ...data,
-      boeken: boeken.map((b) =>
+  const wijzig = (id, velden, ookGelezen) =>
+    bewerk((bs) => bs.map((b) => (b.id === id ? { ...b, ...velden } : b)), ookGelezen);
+
+  const zetPagina = (id, pagina) => {
+    const b = boeken.find((x) => x.id === id);
+    if (!b) return;
+    wijzig(id, { dagen: { ...(b.dagen || {}), [today]: pagina } }, true);
+  };
+
+  const nuLezen = (id, perDag) =>
+    bewerk((bs) =>
+      bs.map((b) =>
         b.id === id
-          ? { ...b, status: "lezend" }
+          ? { ...b, status: "lezend", perDag: perDag || b.perDag || STANDAARD_PER_DAG }
           : b.status === "lezend"
           ? { ...b, status: "te-lezen" }
           : b
-      ),
-    });
+      )
+    );
+
+  const voegNotitie = (id, pagina, tekst) => {
+    const b = boeken.find((x) => x.id === id);
+    if (!b || !tekst.trim()) return;
+    const n = { id: "n" + Date.now(), pagina: pagina || null, tekst: tekst.trim(), datum: today };
+    wijzig(id, { notities: [...(b.notities || []), n] });
+  };
+
+  const wisNotitie = (id, nid) => {
+    const b = boeken.find((x) => x.id === id);
+    if (!b) return;
+    wijzig(id, { notities: (b.notities || []).filter((n) => n.id !== nid) });
   };
 
   const voegToe = () => {
     const p = parseInt(form.paginas, 10);
-    const pd = parseInt(form.perDag, 10);
-    if (!form.titel.trim() || !p || !pd) return;
-    persist({
-      ...data,
-      boeken: [
-        ...boeken,
-        {
-          id: "b" + Date.now(),
-          titel: form.titel.trim(),
-          paginas: p,
-          perDag: pd,
-          dagen: {},
-          notitie: "",
-          status: lezend ? "te-lezen" : "lezend",
-        },
-      ],
-    });
+    if (!form.titel.trim() || !p) return;
+    bewerk((bs) => [
+      ...bs,
+      {
+        id: "b" + Date.now(),
+        titel: form.titel.trim(),
+        paginas: p,
+        perDag: STANDAARD_PER_DAG,
+        dagen: {},
+        notities: [],
+        status: "te-lezen",
+      },
+    ]);
     setForm(LEEG_BOEK);
     setNieuw(false);
   };
@@ -845,15 +951,16 @@ function Lezen({ data, persist, today }) {
     return k.length ? d[k[k.length - 1]] : 0;
   };
 
+  const boekInVenster = boeken.find((b) => b.id === open);
+
   return (
-    <section style={card}>
+    <section style={{ ...card }}>
       {lezend ? (
         <NuLezend
           boek={lezend}
           stand={stand(lezend)}
           vorige={vorige(lezend)}
-          today={today}
-          zet={zet}
+          zetPagina={zetPagina}
           opendetail={() => setOpen(lezend.id)}
         />
       ) : (
@@ -862,26 +969,41 @@ function Lezen({ data, persist, today }) {
         </p>
       )}
 
-      <div style={{ display: "flex", gap: 22, marginTop: 18 }}>
-        {lezend && (
-          <button onClick={() => setOpen(lezend.id)} style={tekstlink}>
-            Bladzijde of notitie
-          </button>
-        )}
-        <button onClick={() => setKast(true)} style={{ ...tekstlink, marginLeft: "auto" }}>
-          Boekenkast ({teLezen.length + uit.length + (lezend ? 1 : 0)})
+      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 22 }}>
+        <button
+          onClick={() => setKast(true)}
+          title="Boekenkast"
+          aria-label="Boekenkast"
+          style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", padding: "6px 0", cursor: "pointer" }}
+        >
+          <svg width="26" height="22" viewBox="0 0 26 22" fill="none" stroke={C.soft} strokeLinejoin="miter">
+            {/* drie ruggen met koperen banden, zoals op de plank zelf */}
+            <g strokeWidth="1">
+              <rect x="2" y="4" width="5" height="13" />
+              <path d="M2 6.6H7M2 14.4H7" stroke={C.brass} strokeWidth="0.9" />
+              <rect x="8.5" y="6.5" width="4.5" height="10.5" />
+              <path d="M8.5 8.7H13M8.5 14.8H13" stroke={C.brass} strokeWidth="0.9" />
+              {/* een boek dat schuin tegen de rest aan leunt */}
+              <path d="M15.6 17L19.4 3.6L23.6 4.8L20.6 17Z" />
+              <path d="M16.4 14.2L21.4 15.6" stroke={C.brass} strokeWidth="0.9" />
+            </g>
+            {/* de plank met steunen */}
+            <path d="M0.6 18.4H25.4" strokeWidth="1.7" />
+            <path d="M0.9 18.4V20.6M25.1 18.4V20.6" strokeWidth="1.1" />
+          </svg>
+          <span style={{ ...label, fontSize: 10, color: C.faint }}>{boeken.length}</span>
         </button>
       </div>
 
       {kast && (
         <Venster kop="Boekenkast" onSluit={() => setKast(false)}>
           <Plank titel="Te lezen" boeken={teLezen} leeg="Nog niets klaargezet." onKies={(b) => { setKast(false); setOpen(b.id); }} />
-          <div style={{ marginTop: 28 }}>
+          <div style={{ marginTop: 30 }}>
             <Plank titel="Uitgelezen" boeken={uit} leeg="Het eerste boek dat je uitleest komt hier te staan." onKies={(b) => { setKast(false); setOpen(b.id); }} gedimd />
           </div>
           <button
             onClick={() => { setKast(false); setNieuw(true); }}
-            style={{ ...label, background: "none", border: "1px solid " + C.line, padding: "10px 16px", cursor: "pointer", color: C.ink, marginTop: 30, width: "100%" }}
+            style={{ ...hoofdknop, padding: "12px 16px", marginTop: 34, width: "100%" }}
           >
             Boek toevoegen
           </button>
@@ -893,7 +1015,6 @@ function Lezen({ data, persist, today }) {
           {[
             ["Titel", "titel", "text"],
             ["Aantal bladzijden", "paginas", "number"],
-            ["Bladzijden per dag", "perDag", "number"],
           ].map(([lab, veld, type]) => (
             <div key={veld} style={{ marginBottom: 18 }}>
               <div style={{ ...label, fontSize: 10, color: C.faint }}>{lab}</div>
@@ -901,27 +1022,30 @@ function Lezen({ data, persist, today }) {
                 type={type}
                 value={form[veld]}
                 onChange={(e) => setForm({ ...form, [veld]: e.target.value })}
-                style={invoer}
+                style={{ ...invoer }}
               />
             </div>
           ))}
-          <button onClick={voegToe} style={{ ...label, width: "100%", padding: "13px 0", background: C.ink, color: C.paper, border: "1px solid " + C.ink, cursor: "pointer" }}>
-            In de kast zetten
+          <button onClick={voegToe} style={{ ...hoofdknop, width: "100%", marginTop: 12, padding: "13px 0" }}>
+            Op de plank zetten
           </button>
         </Venster>
       )}
 
-      {open && (
+      {boekInVenster && (
         <Detail
-          boek={boeken.find((b) => b.id === open)}
-          stand={stand(boeken.find((b) => b.id === open))}
+          boek={boekInVenster}
+          stand={stand(boekInVenster)}
           lezendId={lezend ? lezend.id : null}
+          zetPagina={zetPagina}
+          voegNotitie={voegNotitie}
+          wisNotitie={wisNotitie}
           nuLezen={nuLezen}
-          zet={zet}
+          wijzig={wijzig}
           today={today}
           onSluit={() => setOpen(null)}
           onVerwijder={(id) => {
-            persist({ ...data, boeken: boeken.filter((b) => b.id !== id) });
+            bewerk((bs) => bs.filter((b) => b.id !== id));
             setOpen(null);
           }}
         />
@@ -931,13 +1055,10 @@ function Lezen({ data, persist, today }) {
 }
 
 /* het boek dat open ligt */
-function NuLezend({ boek, stand, vorige, today, zet, opendetail }) {
+function NuLezend({ boek, stand, vorige, zetPagina, opendetail }) {
   const doel = Math.min(boek.paginas, vorige + boek.perDag);
   const teGaan = Math.max(0, doel - stand);
   const voortgang = Math.min(1, stand / boek.paginas);
-
-  const gehaald = () =>
-    zet(boek.id, { dagen: { ...(boek.dagen || {}), [today]: doel } });
 
   return (
     <div>
@@ -965,8 +1086,20 @@ function NuLezend({ boek, stand, vorige, today, zet, opendetail }) {
         </div>
       )}
 
-      <div style={{ height: 2, background: C.line, margin: "20px 0 8px", position: "relative" }}>
+      <div style={{ height: 2, background: C.line, margin: "22px 0 14px", position: "relative" }}>
         <div style={{ position: "absolute", left: 0, top: 0, height: 2, width: voortgang * 100 + "%", background: C.brass }} />
+        <div
+          style={{
+            position: "absolute",
+            left: voortgang * 100 + "%",
+            top: -2.5,
+            width: 7,
+            height: 7,
+            marginLeft: -3.5,
+            background: C.brass,
+            transform: "rotate(45deg)",
+          }}
+        />
       </div>
       <div style={{ ...label, color: C.faint }}>
         bladzijde {stand} van {boek.paginas}
@@ -974,8 +1107,8 @@ function NuLezend({ boek, stand, vorige, today, zet, opendetail }) {
 
       {teGaan > 0 && (
         <button
-          onClick={gehaald}
-          style={{ ...label, marginTop: 20, width: "100%", padding: "13px 0", background: C.ink, color: C.paper, border: "1px solid " + C.ink, cursor: "pointer" }}
+          onClick={() => zetPagina(boek.id, doel)}
+          style={{ ...hoofdknop, marginTop: 20, width: "100%", padding: "13px 0" }}
         >
           Gelezen tot {doel}
         </button>
@@ -988,137 +1121,348 @@ function NuLezend({ boek, stand, vorige, today, zet, opendetail }) {
 function Plank({ titel, boeken, leeg, onKies, gedimd }) {
   return (
     <div>
-      <div style={{ ...label, color: C.soft }}>{titel}</div>
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
+        <span style={{ ...label, color: C.soft }}>{titel}</span>
+        <span style={{ ...label, fontSize: 10, color: boeken.length ? C.brass : C.faint }}>
+          {boeken.length}
+        </span>
+      </div>
+
       {boeken.length ? (
-        <>
-          <div style={{ display: "flex", alignItems: "flex-end", gap: 6, marginTop: 14, overflowX: "auto", paddingBottom: 2 }}>
-            {boeken.map((b, n) => {
-              const dik = Math.max(26, Math.min(46, Math.round(b.paginas / 11)));
-              const hoog = 116 + ((b.titel.length + b.paginas) % 4) * 7;
-              return (
-                <button
-                  key={b.id}
-                  onClick={() => onKies(b)}
-                  title={b.titel}
+        <div style={{ display: "flex", alignItems: "flex-end", gap: 6, marginTop: 14, overflowX: "auto", paddingBottom: 2 }}>
+          {boeken.map((b, n) => {
+            const dik = Math.max(26, Math.min(46, Math.round(b.paginas / 11)));
+            const hoog = 116 + ((b.titel.length + b.paginas) % 4) * 7;
+            return (
+              <button
+                key={b.id}
+                onClick={() => onKies(b)}
+                title={b.titel}
+                style={{
+                  flex: "0 0 auto",
+                  width: dik,
+                  height: hoog,
+                  border: "1px solid " + C.oak,
+                  background: n % 2 ? C.bg : C.paper,
+                  opacity: gedimd ? 0.6 : 1,
+                  cursor: "pointer",
+                  padding: 0,
+                  position: "relative",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  overflow: "hidden",
+                }}
+              >
+                <span style={{ position: "absolute", left: 0, right: 0, top: 14, height: 1, background: C.brass, opacity: 0.75 }} />
+                <span style={{ position: "absolute", left: 0, right: 0, top: 18, height: 1, background: C.brass, opacity: 0.4 }} />
+                <span style={{ position: "absolute", left: 0, right: 0, bottom: 14, height: 1, background: C.brass, opacity: 0.75 }} />
+                <span style={{ position: "absolute", left: 0, right: 0, bottom: 18, height: 1, background: C.brass, opacity: 0.4 }} />
+                <span
                   style={{
-                    flex: "0 0 auto",
-                    width: dik,
-                    height: hoog,
-                    border: "1px solid " + C.oak,
-                    background: n % 2 ? "#EDEBE4" : "#F4F2EC",
-                    opacity: gedimd ? 0.6 : 1,
-                    cursor: "pointer",
-                    padding: 0,
-                    position: "relative",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
+                    fontFamily: "'EB Garamond',Georgia,serif",
+                    fontSize: 12.5,
+                    color: C.ink,
+                    writingMode: "vertical-rl",
+                    transform: "rotate(180deg)",
+                    whiteSpace: "nowrap",
                     overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    maxHeight: hoog - 46,
+                    padding: "0 2px",
                   }}
                 >
-                  {/* de banden van de rug */}
-                  <span style={{ position: "absolute", left: 0, right: 0, top: 14, height: 1, background: C.brass, opacity: 0.75 }} />
-                  <span style={{ position: "absolute", left: 0, right: 0, top: 18, height: 1, background: C.brass, opacity: 0.4 }} />
-                  <span style={{ position: "absolute", left: 0, right: 0, bottom: 14, height: 1, background: C.brass, opacity: 0.75 }} />
-                  <span style={{ position: "absolute", left: 0, right: 0, bottom: 18, height: 1, background: C.brass, opacity: 0.4 }} />
-                  <span
-                    style={{
-                      fontFamily: "'EB Garamond',Georgia,serif",
-                      fontSize: 12.5,
-                      color: C.ink,
-                      writingMode: "vertical-rl",
-                      transform: "rotate(180deg)",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      maxHeight: hoog - 46,
-                      padding: "0 2px",
-                    }}
-                  >
-                    {b.titel}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-          <div style={{ height: 2, background: C.oak, marginTop: 0, opacity: 0.85 }} />
-        </>
+                  {b.titel}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       ) : (
-        <div style={{ marginTop: 12 }}>
-          <Fleuron kleur={C.line} breed={24} />
-          <p style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 17, color: C.faint, fontStyle: "italic", marginTop: 8 }}>
+        <div style={{ height: 96, display: "flex", alignItems: "flex-end", paddingBottom: 10 }}>
+          <p style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 16, color: C.faint, fontStyle: "italic", margin: 0 }}>
             {leeg}
           </p>
         </div>
       )}
+
+      {/* de plank zelf, met steunen aan weerskanten */}
+      <div style={{ position: "relative" }}>
+        <div style={{ height: 2, background: C.oak, opacity: 0.85 }} />
+        <div style={{ position: "absolute", left: 0, top: 2, width: 2, height: 7, background: C.oak, opacity: 0.6 }} />
+        <div style={{ position: "absolute", right: 0, top: 2, width: 2, height: 7, background: C.oak, opacity: 0.6 }} />
+      </div>
     </div>
   );
 }
 
-/* het venster bij een boek */
-function Detail({ boek, stand, lezendId, nuLezen, zet, today, onSluit, onVerwijder }) {
+/* het venster bij een boek: een korte lijst met wat je kunt doen */
+function Detail({ boek, stand, lezendId, zetPagina, voegNotitie, wisNotitie, nuLezen, wijzig, onSluit, onVerwijder }) {
   const [pagina, setPagina] = useState(String(stand || ""));
-  const [notitie, setNotitie] = useState(boek.notitie || "");
+  const [sub, setSub] = useState(null);          // "notities", "beginnen" of "weg"
+  const [tempo, setTempo] = useState(String(boek.perDag || 10));
+  const [nPagina, setNPagina] = useState("");
+  const [nTekst, setNTekst] = useState("");
 
-  if (!boek) return null;
+  const notities = (boek.notities || []).slice().reverse();
+  const voortgang = Math.min(1, stand / (boek.paginas || 1));
 
-  const bewaar = () => {
+  const bewaarPagina = () => {
     const v = Math.max(0, Math.min(boek.paginas, parseInt(pagina, 10) || 0));
-    zet(boek.id, { dagen: { ...(boek.dagen || {}), [today]: v }, notitie });
-    onSluit();
+    zetPagina(boek.id, v);
+  };
+
+  const bewaarNotitie = () => {
+    if (!nTekst.trim()) return;
+    voegNotitie(boek.id, parseInt(nPagina, 10) || null, nTekst);
+    setNPagina("");
+    setNTekst("");
   };
 
   return (
     <Venster onSluit={onSluit} kop={boek.titel}>
-      <div style={{ ...label, color: C.faint, marginBottom: 20 }}>
-        {boek.paginas} bladzijden
+      <div style={{ ...label, fontSize: 10, color: boek.status === "lezend" ? C.brass : C.faint, marginBottom: 14 }}>
+        {boek.status === "lezend"
+          ? "bladzijde " + stand + " van " + boek.paginas + " \u00b7 " + boek.perDag + " per dag"
+          : boek.paginas + " bladzijden"}
         {boek.status === "uit" ? " \u00b7 uitgelezen" : ""}
+        {boek.status === "te-lezen" ? " \u00b7 op de plank" : ""}
       </div>
 
       {boek.status === "lezend" && (
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ ...label, fontSize: 10, color: C.faint }}>Waar ben je nu</div>
-          <input type="number" value={pagina} onChange={(e) => setPagina(e.target.value)} style={invoer} />
-        </div>
+        <>
+          <div style={{ height: 2, background: C.line, margin: "0 0 20px", position: "relative" }}>
+            <div style={{ position: "absolute", left: 0, top: 0, height: 2, width: voortgang * 100 + "%", background: C.brass }} />
+            <div
+              style={{
+                position: "absolute",
+                left: voortgang * 100 + "%",
+                top: -2.5,
+                width: 7,
+                height: 7,
+                marginLeft: -3.5,
+                background: C.brass,
+                transform: "rotate(45deg)",
+              }}
+            />
+          </div>
+
+          <div style={{ display: "flex", gap: 10, marginBottom: 26 }}>
+            <input
+              type="number"
+              value={pagina}
+              onChange={(e) => setPagina(e.target.value)}
+              placeholder="waar ben je nu"
+              style={{
+                flex: 1,
+                boxSizing: "border-box",
+                background: "transparent",
+                border: "1px solid " + C.line,
+                fontFamily: "'EB Garamond',Georgia,serif",
+                fontSize: 17,
+                color: C.ink,
+                outline: "none",
+                padding: "10px 12px",
+              }}
+            />
+            <button onClick={bewaarPagina} style={{ ...knopje, flexShrink: 0, padding: "10px 20px" }}>
+              Zet
+            </button>
+          </div>
+        </>
       )}
 
-      <div style={{ ...label, fontSize: 10, color: C.faint }}>Wat je wilt onthouden</div>
-      <textarea
-        value={notitie}
-        onChange={(e) => setNotitie(e.target.value)}
-        rows={5}
-        placeholder="Een zin, een gedachte."
-        style={{ ...invoer, fontSize: 18, lineHeight: 1.6, resize: "vertical", marginBottom: 22 }}
-      />
-
-      <button onClick={bewaar} style={{ ...label, width: "100%", padding: "13px 0", background: C.ink, color: C.paper, border: "1px solid " + C.ink, cursor: "pointer" }}>
-        Bewaren
-      </button>
-
-      <div style={{ display: "flex", gap: 10, marginTop: 12, flexWrap: "wrap" }}>
+      {/* wat je met dit boek kunt doen */}
+      <div style={{ borderTop: "1px solid " + C.line }}>
+        <Regel onClick={() => setSub("notities")} tekst="Notities" bij={notities.length || ""} />
         {boek.status !== "lezend" && (
-          <button
-            onClick={() => { zet(boek.id, { notitie }); nuLezen(boek.id); onSluit(); }}
-            style={{ ...knopje, borderColor: "#9C7C33", color: "#9C7C33" }}
-          >
-            {lezendId ? "Dit nu lezen" : "Nu lezen"}
-          </button>
+          <Regel onClick={() => setSub("beginnen")} tekst={lezendId ? "Dit nu lezen" : "Nu lezen"} accent />
         )}
         {boek.status === "lezend" && (
-          <button onClick={() => { zet(boek.id, { status: "uit", notitie, klaar: today }); onSluit(); }} style={knopje}>
-            Uitgelezen
-          </button>
+          <>
+            <Regel onClick={() => { wijzig(boek.id, { status: "uit" }); onSluit(); }} tekst="Uitgelezen" accent />
+            <Regel onClick={() => { wijzig(boek.id, { status: "te-lezen" }); onSluit(); }} tekst="Stoppen met lezen" />
+          </>
         )}
         {boek.status === "uit" && (
-          <button onClick={() => { zet(boek.id, { status: "te-lezen", notitie }); onSluit(); }} style={knopje}>
-            Op de plank
-          </button>
+          <Regel onClick={() => { wijzig(boek.id, { status: "te-lezen" }); onSluit(); }} tekst="Terug op de plank" />
         )}
-        <button onClick={() => onVerwijder(boek.id)} style={{ ...knopje, marginLeft: "auto", color: C.faint }}>
-          Verwijderen
-        </button>
+        <Regel onClick={() => setSub("weg")} tekst="Verwijderen" flauw />
       </div>
+
+      {sub === "notities" && (
+        <Venster kop="Notities" onSluit={() => setSub(null)}>
+          {notities.length ? (
+            <div style={{ marginBottom: 22 }}>
+              {notities.map((n) => (
+                <div key={n.id} style={{ padding: "12px 0 12px 14px", borderLeft: "1px solid " + C.brass, borderBottom: "1px solid " + C.line, marginBottom: 2 }}>
+                  <p style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 18, lineHeight: 1.55, color: C.ink, margin: 0, whiteSpace: "pre-wrap" }}>
+                    {n.tekst}
+                  </p>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginTop: 6 }}>
+                    <span style={{ ...label, fontSize: 9, color: C.brass }}>{n.pagina ? "blz. " + n.pagina : ""}</span>
+                    <span style={{ ...label, fontSize: 9, color: C.faint }}>{n.datum}</span>
+                    <button
+                      onClick={() => wisNotitie(boek.id, n.id)}
+                      style={{ ...label, fontSize: 9, marginLeft: "auto", background: "none", border: "none", color: C.faint, cursor: "pointer", padding: 0 }}
+                    >
+                      weg
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 16, color: C.faint, fontStyle: "italic", margin: "0 0 20px" }}>
+              Nog niets bewaard uit dit boek.
+            </p>
+          )}
+
+          <textarea
+            value={nTekst}
+            onChange={(e) => setNTekst(e.target.value)}
+            rows={3}
+            placeholder="een zin die je wilt houden"
+            style={{ ...invoer, marginTop: 0, fontSize: 18, lineHeight: 1.55, resize: "vertical" }}
+          />
+          <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
+            <input
+              type="number"
+              value={nPagina}
+              onChange={(e) => setNPagina(e.target.value)}
+              placeholder="blz."
+              style={{
+                width: 84,
+                flexShrink: 0,
+                boxSizing: "border-box",
+                background: "transparent",
+                border: "1px solid " + C.line,
+                fontFamily: "'EB Garamond',Georgia,serif",
+                fontSize: 17,
+                color: C.ink,
+                outline: "none",
+                padding: "10px 0",
+                textAlign: "center",
+              }}
+            />
+            <button
+              onClick={bewaarNotitie}
+              disabled={!nTekst.trim()}
+              style={{
+                ...label,
+                fontSize: 11,
+                letterSpacing: ".13em",
+                flex: 1,
+                padding: "11px 0",
+                background: "transparent",
+                color: nTekst.trim() ? C.brass : C.faint,
+                border: "1px solid " + (nTekst.trim() ? C.brass : C.line),
+                cursor: nTekst.trim() ? "pointer" : "default",
+              }}
+            >
+              Bewaren
+            </button>
+          </div>
+        </Venster>
+      )}
+
+      {sub === "weg" && (
+        <Venster kop="Verwijderen" onSluit={() => setSub(null)}>
+          <p style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 18, lineHeight: 1.5, color: C.ink, margin: "0 0 8px" }}>
+            {boek.titel} verdwijnt uit de kast.
+          </p>
+          <p style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 16, lineHeight: 1.55, color: C.soft, fontStyle: "italic", margin: "0 0 24px" }}>
+            {notities.length
+              ? notities.length === 1
+                ? "Je \u00e9\u00e9n bewaarde notitie gaat mee. Dat kan niet ongedaan gemaakt worden."
+                : "Je " + notities.length + " bewaarde notities gaan mee. Dat kan niet ongedaan gemaakt worden."
+              : "Dat kan niet ongedaan gemaakt worden."}
+          </p>
+          <div style={{ display: "flex", gap: 10 }}>
+            <button
+              onClick={() => onVerwijder(boek.id)}
+              style={{ ...label, fontSize: 11, letterSpacing: ".13em", flex: 1, padding: "12px 0", background: "transparent", color: C.ink, border: "1px solid " + C.ink, cursor: "pointer" }}
+            >
+              Verwijderen
+            </button>
+            <button
+              onClick={() => setSub(null)}
+              style={{ ...label, fontSize: 11, letterSpacing: ".13em", flex: 1, padding: "12px 0", background: "transparent", color: C.soft, border: "1px solid " + C.line, cursor: "pointer" }}
+            >
+              Laat maar
+            </button>
+          </div>
+        </Venster>
+      )}
+
+      {sub === "beginnen" && (
+        <Venster kop="Beginnen" onSluit={() => setSub(null)}>
+          <p style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 18, lineHeight: 1.5, color: C.ink, margin: "0 0 20px" }}>
+            {boek.titel} telt {boek.paginas} bladzijden. Hoeveel wil je er per dag lezen?
+          </p>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+            <input
+              type="number"
+              value={tempo}
+              onChange={(e) => setTempo(e.target.value)}
+              style={{
+                width: 84,
+                flexShrink: 0,
+                boxSizing: "border-box",
+                background: "transparent",
+                border: "1px solid " + C.line,
+                fontFamily: "'EB Garamond',Georgia,serif",
+                fontSize: 19,
+                color: C.ink,
+                outline: "none",
+                padding: "10px 0",
+                textAlign: "center",
+              }}
+            />
+            <span style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 17, color: C.soft, fontStyle: "italic" }}>
+              bladzijden per dag
+            </span>
+          </div>
+          <p style={{ ...label, fontSize: 10, color: C.faint, margin: "0 0 22px" }}>
+            {Math.max(1, Math.ceil(boek.paginas / Math.max(1, parseInt(tempo, 10) || 1)))} dagen
+          </p>
+          <button
+            onClick={() => { nuLezen(boek.id, parseInt(tempo, 10)); onSluit(); }}
+            style={{ ...hoofdknop, width: "100%", padding: "13px 0" }}
+          >
+            Beginnen
+          </button>
+        </Venster>
+      )}
     </Venster>
+  );
+}
+
+/* een regel in het keuzelijstje van een boek */
+function Regel({ onClick, tekst, bij, accent, flauw }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        ...label,
+        fontSize: 11,
+        letterSpacing: ".13em",
+        width: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        background: "none",
+        border: "none",
+        borderBottom: "1px solid " + C.line,
+        padding: "15px 0",
+        cursor: "pointer",
+        color: flauw ? C.faint : accent ? C.brass : C.ink,
+        textAlign: "left",
+      }}
+    >
+      <span>{tekst}</span>
+      <span style={{ ...label, fontSize: 10, color: C.faint }}>{bij}</span>
+    </button>
   );
 }
 
@@ -1129,7 +1473,7 @@ function Venster({ kop, children, onSluit }) {
       style={{
         position: "fixed",
         inset: 0,
-        background: "rgba(26,31,38,0.32)",
+        background: "rgba(0,0,0,0.42)",
         display: "flex",
         alignItems: "flex-end",
         justifyContent: "center",
@@ -1140,22 +1484,30 @@ function Venster({ kop, children, onSluit }) {
         onClick={(e) => e.stopPropagation()}
         style={{
           background: C.paper,
-          borderTop: "1px solid " + C.line,
+          borderTop: "1px solid " + C.brass,
           width: "100%",
           maxWidth: 620,
           maxHeight: "88%",
           overflowY: "auto",
-          padding: "26px 24px 34px",
+          padding: "14px 24px 34px",
           boxSizing: "border-box",
         }}
       >
-        <div style={{ display: "flex", alignItems: "flex-start", gap: 14, marginBottom: 18 }}>
+        {/* greepje, zoals bij een la die je omhoog trekt */}
+        <div style={{ display: "flex", justifyContent: "center", paddingBottom: 14 }}>
+          <div style={{ width: 34, height: 2, background: C.line }} />
+        </div>
+
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
           <h3 style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 24, fontWeight: 400, color: C.ink, margin: 0, lineHeight: 1.25, flex: 1 }}>
             {kop}
           </h3>
-          <button onClick={onSluit} style={{ ...label, background: "none", border: "none", color: C.faint, cursor: "pointer", padding: 0 }}>
+          <button onClick={onSluit} style={{ ...label, fontSize: 10, background: "none", border: "none", color: C.faint, cursor: "pointer", padding: "6px 0 0" }}>
             Sluit
           </button>
+        </div>
+        <div style={{ margin: "9px 0 20px" }}>
+          <Fleuron breed={26} />
         </div>
         {children}
       </div>
@@ -1168,13 +1520,17 @@ const invoer = {
   marginTop: 6,
   background: "transparent",
   border: "none",
-  borderBottom: "1px solid " + C.line,
   fontFamily: "'EB Garamond',Georgia,serif",
   fontSize: 20,
-  color: C.ink,
   outline: "none",
   padding: "5px 0",
   boxSizing: "border-box",
+  get borderBottom() {
+    return "1px solid " + C.line;
+  },
+  get color() {
+    return C.ink;
+  },
 };
 
 const tekstlink = {
@@ -1187,8 +1543,26 @@ const tekstlink = {
   border: "none",
   padding: 0,
   cursor: "pointer",
-  color: "#9AA0A6",
   whiteSpace: "nowrap",
+  get color() {
+    return C.faint;
+  },
+};
+
+const hoofdknop = {
+  fontFamily: "'Barlow Condensed',Helvetica,sans-serif",
+  fontSize: 12,
+  fontWeight: 500,
+  letterSpacing: ".2em",
+  textTransform: "uppercase",
+  background: "transparent",
+  cursor: "pointer",
+  get border() {
+    return "1px solid " + C.brass;
+  },
+  get color() {
+    return C.brass;
+  },
 };
 
 const knopje = {
@@ -1198,10 +1572,14 @@ const knopje = {
   letterSpacing: ".2em",
   textTransform: "uppercase",
   background: "none",
-  border: "1px solid #C9CAC4",
   padding: "8px 14px",
   cursor: "pointer",
-  color: "#1A1F26",
+  get border() {
+    return "1px solid " + C.line;
+  },
+  get color() {
+    return C.ink;
+  },
 };
 
 /* ---------------- de getijdenband ---------------- */
@@ -1212,8 +1590,8 @@ function Band({ tide, nuId, beschikbaar, onKies, nowFrac, rec }) {
         <div
           style={{
             position: "absolute",
-            left: (tide.van / 24) * 100 + "%",
-            width: ((tide.tot - tide.van) / 24) * 100 + "%",
+            left: (TIDES.findIndex((t) => t.id === tide.id) / TIDES.length) * 100 + "%",
+            width: 100 / TIDES.length + "%",
             top: 0,
             height: 1,
             background: C.brass,
@@ -1232,8 +1610,8 @@ function Band({ tide, nuId, beschikbaar, onKies, nowFrac, rec }) {
         />
       </div>
       <div style={{ position: "relative", height: 30, marginTop: 9 }}>
-        {TIDES.map((t) => {
-          const mid = (t.van + t.tot) / 2 / 24;
+        {TIDES.map((t, idx) => {
+          const mid = (idx + 0.5) / TIDES.length;
           const held = rec.tides.includes(t.id);
           const kan = beschikbaar.includes(t.id);
           const actief = t.id === tide.id;
@@ -1316,7 +1694,7 @@ const BOGEN = BOOG_DEF.map(([v, t, keer], n) => {
   };
 });
 
-function Breath() {
+function Breath({ nachtstand }) {
   const [aan, setAan] = useState(false);
   const [i, setI] = useState(0);
   const [ronde, setRonde] = useState(0);
@@ -1406,6 +1784,7 @@ function Breath() {
             display: "block",
             pointerEvents: "none",
             opacity: 0.72 + open * 0.28,
+            filter: nachtstand ? "brightness(1.8)" : "none",
             transition: `opacity ${dur}ms ease-in-out`,
           }}
         />
@@ -1432,23 +1811,46 @@ function Breath() {
 
 /* ---------------- heatmap ---------------- */
 function Heatmap({ cells }) {
-  const weeks = [];
-  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
+  const weken = [];
+  for (let i = 0; i < cells.length; i += 7) weken.push(cells.slice(i, i + 7));
+  const dagen = ["z", "m", "d", "w", "d", "v", "z"];
   return (
-    <div style={{ display: "flex", gap: 4, marginTop: 16, maxWidth: 250 }}>
-      {weeks.map((w, wi) => (
+    <div style={{ display: "flex", gap: 4, marginTop: 16, maxWidth: 268 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 4, marginRight: 3 }}>
+        {dagen.map((d, i) => (
+          <div
+            key={i}
+            style={{
+              ...label,
+              fontSize: 8,
+              letterSpacing: 0,
+              textTransform: "none",
+              color: C.faint,
+              height: 24,
+              lineHeight: "24px",
+            }}
+          >
+            {d}
+          </div>
+        ))}
+      </div>
+      {weken.map((w, wi) => (
         <div key={wi} style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1 }}>
-          {w.map((c) => (
-            <div
-              key={c.k}
-              title={c.k}
-              style={{
-                paddingBottom: "100%",
-                background: c.v === 0 ? C.line : C.brass,
-                opacity: c.v === 0 ? 0.5 : 0.3 + c.v * 0.7,
-              }}
-            />
-          ))}
+          {Array.from({ length: 7 }).map((_, ri) => {
+            const c = w[ri];
+            if (!c) return <div key={ri} style={{ height: 24 }} />;
+            return (
+              <div
+                key={c.k}
+                title={c.k}
+                style={{
+                  height: 24,
+                  background: c.v === 0 ? C.line : C.brass,
+                  opacity: c.v === 0 ? 0.45 : 0.3 + c.v * 0.7,
+                }}
+              />
+            );
+          })}
         </div>
       ))}
     </div>
@@ -1458,15 +1860,23 @@ function Heatmap({ cells }) {
 /* ---------------- gedeelde stijl ---------------- */
 const page = {
   minHeight: "100%",
-  background: C.bg,
-  color: C.ink,
   WebkitFontSmoothing: "antialiased",
+  get background() {
+    return C.bg;
+  },
+  get color() {
+    return C.ink;
+  },
 };
 
 const card = {
-  background: C.paper,
-  border: "1px solid " + C.line,
   padding: "26px 24px 28px",
+  get background() {
+    return C.paper;
+  },
+  get border() {
+    return "1px solid " + C.line;
+  },
 };
 
 const label = {
@@ -1475,13 +1885,17 @@ const label = {
   fontWeight: 500,
   letterSpacing: ".2em",
   textTransform: "uppercase",
-  color: C.soft,
+  get color() {
+    return C.soft;
+  },
 };
 
 const rule = {
   height: 1,
-  background: C.line,
   margin: "26px 0 22px",
+  get background() {
+    return C.line;
+  },
 };
 
 function Fonts() {
@@ -1489,7 +1903,12 @@ function Fonts() {
     <style>{`
       @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Barlow+Condensed:wght@400;500&display=swap');
       * { box-sizing: border-box; }
-      textarea::placeholder, input::placeholder { color: ${C.faint}; font-style: italic; }
+      textarea::placeholder, input::placeholder {
+        color: ${C.faint};
+        font-style: italic;
+        font-size: 15px;
+        letter-spacing: 0;
+      }
       button:focus-visible, textarea:focus-visible, input:focus-visible {
         outline: 2px solid ${C.brass}; outline-offset: 2px;
       }
