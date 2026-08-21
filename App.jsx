@@ -331,7 +331,7 @@ export default function Getijden() {
     last56.push({ k, d: new Date(d), rec: r, v: total ? Math.min(1, hit / Math.max(1, total * 0.6)) : 0, hit });
   }
 
-  const aangeraakt = last56.slice(-28).filter((x) => x.hit > 0).length;
+  const aangeraakt = last56.slice(-10).filter((x) => x.hit > 0).length;
 
   const wisselDagNacht = () => {
     const aan = !nacht;
@@ -646,7 +646,7 @@ export default function Getijden() {
             <div style={{ ...label, color: C.soft }}>De laatste acht weken</div>
             <Heatmap cells={last56} habits={data.habits} />
             <p style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 19, lineHeight: 1.5, color: C.ink, marginTop: 22 }}>
-              Aangeraakt op <span style={{ color: C.brass }}>{aangeraakt}</span> van de laatste 28 dagen.
+              Aangeraakt op <span style={{ color: C.brass }}>{aangeraakt}</span> van de laatste tien dagen.
             </p>
             <p style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 16, lineHeight: 1.55, color: C.soft, marginTop: 8, fontStyle: "italic" }}>
               Geen reeks om te breken. Alleen dagen waarop je er was.
