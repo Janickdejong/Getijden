@@ -129,7 +129,7 @@ const TIDES = [
   },
 ];
 
-const VERSIE = "1.1.1";
+const VERSIE = "1.2.0";
 const STORAGE_KEY = "getijden:v1";
 
 /* Werkt zowel in de Claude-artefactomgeving als op een gewone website. */
@@ -296,6 +296,15 @@ export default function Getijden() {
   const removeHabit = (id) =>
     persist({ ...data, habits: data.habits.filter((h) => h.id !== id) });
 
+  const verplaats = (id, richting) => {
+    const lijst = [...data.habits];
+    const i = lijst.findIndex((h) => h.id === id);
+    const j = i + richting;
+    if (i < 0 || j < 0 || j >= lijst.length) return;
+    [lijst[i], lijst[j]] = [lijst[j], lijst[i]];
+    persist({ ...data, habits: lijst });
+  };
+
   /* ---------- afgeleide waarden ---------- */
   const rec = dayRecord(today);
   // de band toont de drie uren als gelijke vakken; het ruitje schuift binnen het huidige vak
@@ -319,7 +328,7 @@ export default function Getijden() {
     const r = (data && data.days[k]) || null;
     const total = (data ? data.habits.length : 3) + 3;
     const hit = r ? r.done.length + r.tides.length + (r.note ? 1 : 0) + (r.gelezen ? 1 : 0) : 0;
-    last56.push({ k, d: new Date(d), v: total ? Math.min(1, hit / Math.max(1, total * 0.6)) : 0, hit });
+    last56.push({ k, d: new Date(d), rec: r, v: total ? Math.min(1, hit / Math.max(1, total * 0.6)) : 0, hit });
   }
 
   const aangeraakt = last56.slice(-28).filter((x) => x.hit > 0).length;
@@ -516,7 +525,7 @@ export default function Getijden() {
               </span>
             </div>
             <div style={{ marginTop: 14 }}>
-              {data.habits.map((h) => {
+              {data.habits.map((h, n) => {
                 const on = rec.done.includes(h.id);
                 return (
                   <div key={h.id} style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "13px 0", borderBottom: "1px solid " + C.line }}>
@@ -557,9 +566,31 @@ export default function Getijden() {
                       {h.naam}
                     </span>
                     {editHabits && (
-                      <button onClick={() => removeHabit(h.id)} style={{ ...label, fontSize: 10, marginTop: 6, flexShrink: 0, background: "none", border: "none", color: C.faint, cursor: "pointer", padding: 0 }}>
-                        weg
-                      </button>
+                      <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 2, flexShrink: 0 }}>
+                        <button
+                          onClick={() => verplaats(h.id, -1)}
+                          disabled={n === 0}
+                          aria-label="omhoog"
+                          style={{ background: "none", border: "none", cursor: n === 0 ? "default" : "pointer", padding: 6, lineHeight: 0, opacity: n === 0 ? 0.3 : 1 }}
+                        >
+                          <svg width="11" height="8" viewBox="0 0 11 8" fill="none" stroke={C.soft} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M1.2 6.4L5.5 1.6L9.8 6.4" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => verplaats(h.id, 1)}
+                          disabled={n === data.habits.length - 1}
+                          aria-label="omlaag"
+                          style={{ background: "none", border: "none", cursor: n === data.habits.length - 1 ? "default" : "pointer", padding: 6, lineHeight: 0, opacity: n === data.habits.length - 1 ? 0.3 : 1 }}
+                        >
+                          <svg width="11" height="8" viewBox="0 0 11 8" fill="none" stroke={C.soft} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M1.2 1.6L5.5 6.4L9.8 1.6" />
+                          </svg>
+                        </button>
+                        <button onClick={() => removeHabit(h.id)} style={{ ...label, fontSize: 10, background: "none", border: "none", color: C.faint, cursor: "pointer", padding: "6px 0 6px 6px" }}>
+                          weg
+                        </button>
+                      </div>
                     )}
                   </div>
                 );
@@ -613,7 +644,7 @@ export default function Getijden() {
         {view === "terug" && (
           <section style={{ ...card }}>
             <div style={{ ...label, color: C.soft }}>De laatste acht weken</div>
-            <Heatmap cells={last56} />
+            <Heatmap cells={last56} habits={data.habits} />
             <p style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 19, lineHeight: 1.5, color: C.ink, marginTop: 22 }}>
               Aangeraakt op <span style={{ color: C.brass }}>{aangeraakt}</span> van de laatste 28 dagen.
             </p>
@@ -625,26 +656,48 @@ export default function Getijden() {
 
             <div style={{ ...label, color: C.soft }}>Gedachten</div>
             <div style={{ marginTop: 12 }}>
-              {last56
-                .slice()
-                .reverse()
-                .filter((c) => data.days[c.k] && data.days[c.k].note)
-                .slice(0, 12)
-                .map((c) => (
-                  <div key={c.k} style={{ padding: "12px 0 12px 14px", borderLeft: "1px solid " + C.brass, borderBottom: "1px solid " + C.line, marginBottom: 2 }}>
-                    <p style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 18, lineHeight: 1.55, color: C.ink, margin: 0, whiteSpace: "pre-wrap" }}>
-                      {data.days[c.k].note}
+              {(() => {
+                // dagelijkse gedachten en boeknotities door elkaar, nieuwste eerst
+                const alles = [];
+                last56.forEach((c) => {
+                  const r = data.days[c.k];
+                  if (r && r.note) alles.push({ k: c.k + "-dag", datum: c.k, tekst: r.note, bron: null });
+                });
+                (data.boeken || []).forEach((b) => {
+                  (b.notities || []).forEach((n) => {
+                    alles.push({
+                      k: n.id,
+                      datum: n.datum || "",
+                      tekst: n.tekst,
+                      bron: b.titel + (n.pagina ? " \u00b7 blz. " + n.pagina : ""),
+                    });
+                  });
+                });
+                alles.sort((a, b) => (a.datum < b.datum ? 1 : a.datum > b.datum ? -1 : 0));
+
+                if (!alles.length)
+                  return (
+                    <p style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 17, color: C.faint, fontStyle: "italic" }}>
+                      Nog niets opgeschreven. Begin vanavond bij het uur.
                     </p>
-                    <div style={{ ...label, fontSize: 9, color: C.faint, marginTop: 6 }}>
-                      {c.d.toLocaleDateString("nl-NL", { day: "numeric", month: "long" })}
+                  );
+
+                return alles.slice(0, 20).map((n) => (
+                  <div key={n.k} style={{ padding: "12px 0 12px 14px", borderLeft: "1px solid " + C.brass, borderBottom: "1px solid " + C.line, marginBottom: 2 }}>
+                    <p style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 18, lineHeight: 1.55, color: C.ink, margin: 0, whiteSpace: "pre-wrap" }}>
+                      {n.tekst}
+                    </p>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginTop: 6, flexWrap: "wrap" }}>
+                      {n.bron && <span style={{ ...label, fontSize: 9, color: C.brass }}>{n.bron}</span>}
+                      <span style={{ ...label, fontSize: 9, color: C.faint }}>
+                        {n.datum
+                          ? new Date(n.datum + "T12:00:00").toLocaleDateString("nl-NL", { day: "numeric", month: "long" })
+                          : ""}
+                      </span>
                     </div>
                   </div>
-                ))}
-              {!last56.some((c) => data.days[c.k] && data.days[c.k].note) && (
-                <p style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 17, color: C.faint, fontStyle: "italic" }}>
-                  Nog niets opgeschreven. Begin vanavond bij het uur.
-                </p>
-              )}
+                ));
+              })()}
             </div>
           </section>
         )}
@@ -745,6 +798,7 @@ function Cross({ size = 20, color = C.ink, stroke = 1 }) {
 function Backup({ data, persist }) {
   const [melding, setMelding] = useState(null);
   const [terug, setTerug] = useState(null);   // ingelezen bestand, wacht op bevestiging
+  const [wis, setWis] = useState(0);          // 0 niets, 1 eerste vraag, 2 tweede vraag
   const invoerRef = useRef(null);
 
   const bestandsnaam = () => "getijden-" + dateKey(new Date()) + ".json";
@@ -761,6 +815,7 @@ function Backup({ data, persist }) {
       a.click();
       document.body.removeChild(a);
       setTimeout(() => URL.revokeObjectURL(url), 4000);
+      persist({ ...data, laatsteBackup: dateKey(new Date()) });
       setMelding("Bestand opgeslagen als " + bestandsnaam());
     } catch (e) {
       try {
@@ -812,13 +867,25 @@ function Backup({ data, persist }) {
 
   const dagen = Object.keys(data.days || {}).length;
   const boeken = (data.boeken || []).length;
+  const geleden = data.laatsteBackup
+    ? Math.round((new Date(dateKey(new Date())) - new Date(data.laatsteBackup)) / 86400000)
+    : null;
 
   return (
     <div>
       <div style={{ ...label, color: C.soft, marginBottom: 10 }}>Back-up</div>
-      <p style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 16, lineHeight: 1.55, color: C.soft, margin: "0 0 18px", fontStyle: "italic" }}>
+      <p style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 16, lineHeight: 1.55, color: C.soft, margin: "0 0 10px", fontStyle: "italic" }}>
         Alles staat alleen in deze app. {dagen} {dagen === 1 ? "dag" : "dagen"} en {boeken}{" "}
         {boeken === 1 ? "boek" : "boeken"} opgeslagen.
+      </p>
+      <p style={{ ...label, fontSize: 10, color: geleden === null || geleden > 21 ? C.brass : C.faint, margin: "0 0 18px" }}>
+        {geleden === null
+          ? "nog nooit een back-up gemaakt"
+          : geleden === 0
+          ? "laatste back-up: vandaag"
+          : geleden === 1
+          ? "laatste back-up: gisteren"
+          : "laatste back-up: " + geleden + " dagen geleden"}
       </p>
 
       <div style={{ display: "flex", gap: 10 }}>
@@ -852,7 +919,59 @@ function Backup({ data, persist }) {
         <p style={{ ...label, fontSize: 10, color: C.faint, marginTop: 14, letterSpacing: ".1em" }}>{melding}</p>
       )}
 
-      <div style={{ height: 1, background: C.line, margin: "30px 0 14px" }} />
+      <div style={{ height: 1, background: C.line, margin: "30px 0 20px" }} />
+
+      {wis === 0 && (
+        <button
+          onClick={() => setWis(1)}
+          style={{ ...label, fontSize: 10, background: "none", border: "none", color: C.faint, cursor: "pointer", padding: 0 }}
+        >
+          Alles wissen
+        </button>
+      )}
+      {wis === 1 && (
+        <div>
+          <p style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 17, lineHeight: 1.5, color: C.ink, margin: "0 0 14px" }}>
+            Alles wissen verwijdert je {dagen} {dagen === 1 ? "dag" : "dagen"}, je gedachten en je{" "}
+            {boeken} {boeken === 1 ? "boek" : "boeken"} met alle notities.
+          </p>
+          <div style={{ display: "flex", gap: 10 }}>
+            <button onClick={() => setWis(2)} style={{ ...label, fontSize: 11, flex: 1, padding: "11px 0", background: "transparent", color: C.ink, border: "1px solid " + C.ink, cursor: "pointer" }}>
+              Ga door
+            </button>
+            <button onClick={() => setWis(0)} style={{ ...label, fontSize: 11, flex: 1, padding: "11px 0", background: "transparent", color: C.soft, border: "1px solid " + C.line, cursor: "pointer" }}>
+              Laat maar
+            </button>
+          </div>
+        </div>
+      )}
+      {wis === 2 && (
+        <div>
+          <p style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 17, lineHeight: 1.5, color: C.ink, margin: "0 0 6px" }}>
+            Zeker weten? Dit kan niet ongedaan gemaakt worden.
+          </p>
+          <p style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 16, lineHeight: 1.5, color: C.soft, fontStyle: "italic", margin: "0 0 14px" }}>
+            Maak eerst een back-up als je het later nog terug wilt kunnen zetten.
+          </p>
+          <div style={{ display: "flex", gap: 10 }}>
+            <button
+              onClick={() => {
+                persist({ habits: DEFAULT_HABITS, days: {}, boeken: [], nacht: !!data.nacht });
+                setWis(0);
+                setMelding("Alles gewist.");
+              }}
+              style={{ ...label, fontSize: 11, flex: 1, padding: "11px 0", background: "transparent", color: C.brass, border: "1px solid " + C.brass, cursor: "pointer" }}
+            >
+              Wissen
+            </button>
+            <button onClick={() => setWis(0)} style={{ ...label, fontSize: 11, flex: 1, padding: "11px 0", background: "transparent", color: C.soft, border: "1px solid " + C.line, cursor: "pointer" }}>
+              Laat maar
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div style={{ height: 1, background: C.line, margin: "24px 0 14px" }} />
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
         <span style={{ ...label, fontSize: 10, color: C.faint }}>Getijden</span>
         <span style={{ ...label, fontSize: 10, color: C.faint }}>versie {VERSIE}</span>
@@ -1810,49 +1929,69 @@ function Breath({ nachtstand }) {
 }
 
 /* ---------------- heatmap ---------------- */
-function Heatmap({ cells }) {
+function Heatmap({ cells, habits }) {
+  const [gekozen, setGekozen] = useState(null);
   const weken = [];
   for (let i = 0; i < cells.length; i += 7) weken.push(cells.slice(i, i + 7));
   const dagen = ["z", "m", "d", "w", "d", "v", "z"];
+
+  const omschrijf = (c) => {
+    if (!c.rec) return "niets";
+    const d = [];
+    if (c.rec.tides && c.rec.tides.length) d.push(c.rec.tides.length + " uur" + (c.rec.tides.length > 1 ? "en" : ""));
+    if (c.rec.done && c.rec.done.length) d.push(c.rec.done.length + " gewoonte" + (c.rec.done.length > 1 ? "s" : ""));
+    if (c.rec.gelezen) d.push("gelezen");
+    if (c.rec.note) d.push("een gedachte");
+    return d.length ? d.join(" \u00b7 ") : "niets";
+  };
+
   return (
-    <div style={{ display: "flex", gap: 4, marginTop: 16, maxWidth: 268 }}>
-      <div style={{ display: "flex", flexDirection: "column", gap: 4, marginRight: 3 }}>
-        {dagen.map((d, i) => (
-          <div
-            key={i}
-            style={{
-              ...label,
-              fontSize: 8,
-              letterSpacing: 0,
-              textTransform: "none",
-              color: C.faint,
-              height: 24,
-              lineHeight: "24px",
-            }}
-          >
-            {d}
+    <div>
+      <div style={{ display: "flex", gap: 4, marginTop: 16, maxWidth: 268 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 4, marginRight: 3 }}>
+          {dagen.map((d, i) => (
+            <div
+              key={i}
+              style={{ ...label, fontSize: 8, letterSpacing: 0, textTransform: "none", color: C.faint, height: 24, lineHeight: "24px" }}
+            >
+              {d}
+            </div>
+          ))}
+        </div>
+        {weken.map((w, wi) => (
+          <div key={wi} style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1 }}>
+            {Array.from({ length: 7 }).map((_, ri) => {
+              const c = w[ri];
+              if (!c) return <div key={ri} style={{ height: 24 }} />;
+              const aan = gekozen && gekozen.k === c.k;
+              return (
+                <button
+                  key={c.k}
+                  onClick={() => setGekozen(aan ? null : c)}
+                  aria-label={c.k}
+                  style={{
+                    height: 24,
+                    padding: 0,
+                    cursor: "pointer",
+                    background: c.v === 0 ? C.line : C.brass,
+                    opacity: c.v === 0 ? 0.45 : 0.3 + c.v * 0.7,
+                    border: aan ? "1px solid " + C.ink : "1px solid transparent",
+                    boxSizing: "border-box",
+                  }}
+                />
+              );
+            })}
           </div>
         ))}
       </div>
-      {weken.map((w, wi) => (
-        <div key={wi} style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1 }}>
-          {Array.from({ length: 7 }).map((_, ri) => {
-            const c = w[ri];
-            if (!c) return <div key={ri} style={{ height: 24 }} />;
-            return (
-              <div
-                key={c.k}
-                title={c.k}
-                style={{
-                  height: 24,
-                  background: c.v === 0 ? C.line : C.brass,
-                  opacity: c.v === 0 ? 0.45 : 0.3 + c.v * 0.7,
-                }}
-              />
-            );
-          })}
-        </div>
-      ))}
+
+      <div style={{ ...label, fontSize: 9, letterSpacing: ".12em", color: C.faint, marginTop: 10, minHeight: 14 }}>
+        {gekozen
+          ? gekozen.d.toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long" }) +
+            " \u00b7 " +
+            omschrijf(gekozen)
+          : "\u00A0"}
+      </div>
     </div>
   );
 }
