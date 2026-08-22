@@ -1,5 +1,5 @@
 /* Eenvoudige offline-cache. Verhoog VERSIE na elke nieuwe versie. */
-const VERSIE = "getijden-v1-2-0";
+const VERSIE = "getijden-v1-3-3";
 
 self.addEventListener("install", (e) => {
   self.skipWaiting();

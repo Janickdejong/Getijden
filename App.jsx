@@ -56,8 +56,8 @@ const TIDES = [
       { t: "Onze Vader, die in de hemelen zijt, uw Naam worde geheiligd; uw Koninkrijk kome; uw wil geschiede, gelijk in de hemel, zo ook op de aarde. Geef ons heden ons dagelijks brood.", bron: "Het gebed des Heeren" },
       { t: "Heere, open mijn lippen, dan zal mijn mond uw lof verkondigen.", bron: "Psalm 51" },
       { t: "Ik dank U, hemelse Vader, dat U mij deze nacht bewaard hebt. Bewaar mij ook vandaag voor kwaad. In uw handen leg ik mijzelf en alles wat van mij is.", bron: "Luther" },
-      { t: "U hebt mij gemaakt tot U, en mijn hart is onrustig totdat het rust vindt in U.", bron: "Augustinus" },
-      { t: "Christus met mij, Christus v\u00f3\u00f3r mij, Christus achter mij, Christus in mij, Christus onder mij, Christus boven mij, Christus aan mijn rechterhand, Christus aan mijn linkerhand.", bron: "Patrick" },
+      { t: "U hebt mij gemaakt tot U, en mijn hart is onrustig totdat het rust vindt in U.", bron: "St. Augustinus" },
+      { t: "Christus met mij, Christus v\u00f3\u00f3r mij, Christus achter mij, Christus in mij, Christus onder mij, Christus boven mij, Christus aan mijn rechterhand, Christus aan mijn linkerhand.", bron: "St. Patrick" },
       { t: "Geef mij, Heere, te weten wat ik weten moet, lief te hebben wat ik liefhebben moet, en te doen wat U behaagt.", bron: "Thomas a Kempis" },
       { t: "Mijn God, mijn Vader, U hebt mij deze dag gegeven. Geef dat ik hem in uw dienst besteed, en dat ik niets denk, zeg of doe dan tot uw eer.", bron: "Calvijn" },
       { t: "Breng mij vandaag veilig door deze dag. Bewaar mij voor kwaad, en laat alles wat ik doe recht zijn voor U.", bron: "Oud morgengebed" },
@@ -86,7 +86,7 @@ const TIDES = [
     woorden: [
       { t: "Heere, ontferm U. Christus, ontferm U. Heere, ontferm U.", bron: "Kyrie" },
       { t: "Heere Jezus Christus, Zoon van God, ontferm U over mij, zondaar.", bron: "Het Jezusgebed" },
-      { t: "Geef wat U beveelt, en beveel wat U wilt.", bron: "Augustinus" },
+      { t: "Geef wat U beveelt, en beveel wat U wilt.", bron: "St. Augustinus" },
       { t: "Ziel van Christus, heilig mij. Binnen uw wonden verberg mij. Laat mij nooit van U gescheiden worden.", bron: "Anima Christi" },
       { t: "Heere, ik geloof; kom mijn ongeloof te hulp.", bron: "Markus 9" },
       { t: "Heere, U weet alles; U weet dat ik U liefheb.", bron: "Johannes 21" },
@@ -119,7 +119,7 @@ const TIDES = [
       { t: "Bewaar mij, Heere, terwijl ik waak, en bescherm mij terwijl ik slaap, opdat ik wakend bij Christus mag zijn en slapend mag rusten in vrede.", bron: "Avondgetijde" },
       { t: "Heere, nu laat U uw dienaar gaan in vrede, naar uw woord, want mijn ogen hebben uw heil gezien.", bron: "Lofzang van Simeon" },
       { t: "In uw handen, Heere, beveel ik mijn geest. U hebt mij verlost, getrouwe God.", bron: "Psalm 31" },
-      { t: "Waak, Heere, bij wie deze nacht wakker ligt. Geef rust aan wie moe is, en ontferm U over wie verdriet heeft.", bron: "Augustinus" },
+      { t: "Waak, Heere, bij wie deze nacht wakker ligt. Geef rust aan wie moe is, en ontferm U over wie verdriet heeft.", bron: "St. Augustinus" },
       { t: "Verlicht mijn duisternis, Heere, en bescherm mij deze nacht.", bron: "Oud avondgebed" },
       { t: "Geef mij rust in U, boven alles wat er te krijgen is.", bron: "Thomas a Kempis" },
       { t: "Doorgrond mij, o God, en ken mijn hart; zie of er bij mij een weg is die pijn doet, en leid mij op de eeuwige weg.", bron: "Psalm 139" },
@@ -129,7 +129,7 @@ const TIDES = [
   },
 ];
 
-const VERSIE = "1.2.0";
+const VERSIE = "1.3.3";
 const STORAGE_KEY = "getijden:v1";
 
 /* Werkt zowel in de Claude-artefactomgeving als op een gewone website. */
@@ -183,6 +183,8 @@ export default function Getijden() {
   const [view, setView] = useState("nu");
   const [backup, setBackup] = useState(false);
   const [nacht, setNacht] = useState(false);
+  const [zoek, setZoek] = useState("");
+  const [toon, setToon] = useState(20);
   const saveTimer = useRef(null);
 
   Object.assign(C, nacht ? NACHT : DAG);
@@ -556,11 +558,8 @@ export default function Getijden() {
                       style={{
                         fontFamily: "'EB Garamond',Georgia,serif",
                         fontSize: 19,
-                        color: on ? C.soft : C.ink,
+                        color: on ? C.brass : C.ink,
                         flex: 1,
-                        textDecoration: on ? "line-through" : "none",
-                        textDecorationColor: C.brass,
-                        textDecorationThickness: "1px",
                       }}
                     >
                       {h.naam}
@@ -643,8 +642,8 @@ export default function Getijden() {
 
         {view === "terug" && (
           <section style={{ ...card }}>
-            <div style={{ ...label, color: C.soft }}>De laatste acht weken</div>
-            <Heatmap cells={last56} habits={data.habits} />
+            <div style={{ ...label, color: C.soft }}>De laatste tien dagen</div>
+            <Heatmap cells={last56} />
             <p style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 19, lineHeight: 1.5, color: C.ink, marginTop: 22 }}>
               Aangeraakt op <span style={{ color: C.brass }}>{aangeraakt}</span> van de laatste tien dagen.
             </p>
@@ -655,13 +654,19 @@ export default function Getijden() {
             <Scheiding marge={24} />
 
             <div style={{ ...label, color: C.soft }}>Gedachten</div>
+            <input
+              value={zoek}
+              onChange={(e) => { setZoek(e.target.value); setToon(20); }}
+              placeholder="zoeken"
+              style={{ ...invoer, marginTop: 10, fontSize: 17 }}
+            />
             <div style={{ marginTop: 12 }}>
               {(() => {
                 // dagelijkse gedachten en boeknotities door elkaar, nieuwste eerst
                 const alles = [];
-                last56.forEach((c) => {
-                  const r = data.days[c.k];
-                  if (r && r.note) alles.push({ k: c.k + "-dag", datum: c.k, tekst: r.note, bron: null });
+                Object.keys(data.days || {}).forEach((k) => {
+                  const r = data.days[k];
+                  if (r && r.note) alles.push({ k: k + "-dag", datum: k, tekst: r.note, bron: null });
                 });
                 (data.boeken || []).forEach((b) => {
                   (b.notities || []).forEach((n) => {
@@ -675,6 +680,22 @@ export default function Getijden() {
                 });
                 alles.sort((a, b) => (a.datum < b.datum ? 1 : a.datum > b.datum ? -1 : 0));
 
+                const term = zoek.trim().toLowerCase();
+                const gevonden = term
+                  ? alles.filter(
+                      (n) =>
+                        n.tekst.toLowerCase().includes(term) ||
+                        (n.bron || "").toLowerCase().includes(term)
+                    )
+                  : alles;
+
+                if (term && !gevonden.length)
+                  return (
+                    <p style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 17, color: C.faint, fontStyle: "italic" }}>
+                      Niets gevonden.
+                    </p>
+                  );
+
                 if (!alles.length)
                   return (
                     <p style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 17, color: C.faint, fontStyle: "italic" }}>
@@ -682,7 +703,7 @@ export default function Getijden() {
                     </p>
                   );
 
-                return alles.slice(0, 20).map((n) => (
+                return gevonden.slice(0, toon).map((n) => (
                   <div key={n.k} style={{ padding: "12px 0 12px 14px", borderLeft: "1px solid " + C.brass, borderBottom: "1px solid " + C.line, marginBottom: 2 }}>
                     <p style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 18, lineHeight: 1.55, color: C.ink, margin: 0, whiteSpace: "pre-wrap" }}>
                       {n.tekst}
@@ -697,6 +718,20 @@ export default function Getijden() {
                     </div>
                   </div>
                 ));
+              })()}
+
+              {(() => {
+                const totaal =
+                  Object.values(data.days || {}).filter((r) => r && r.note).length +
+                  (data.boeken || []).reduce((n, b) => n + (b.notities || []).length, 0);
+                return totaal > toon ? (
+                  <button
+                    onClick={() => setToon(toon + 20)}
+                    style={{ ...label, fontSize: 10, background: "none", border: "1px solid " + C.line, padding: "10px 0", width: "100%", marginTop: 16, cursor: "pointer", color: C.soft }}
+                  >
+                    Meer tonen
+                  </button>
+                ) : null;
               })()}
             </div>
           </section>
@@ -1034,6 +1069,14 @@ function Lezen({ data, persist, today }) {
     wijzig(id, { notities: [...(b.notities || []), n] });
   };
 
+  const wijzigNotitie = (id, nid, velden) => {
+    const b = boeken.find((x) => x.id === id);
+    if (!b) return;
+    wijzig(id, {
+      notities: (b.notities || []).map((n) => (n.id === nid ? { ...n, ...velden } : n)),
+    });
+  };
+
   const wisNotitie = (id, nid) => {
     const b = boeken.find((x) => x.id === id);
     if (!b) return;
@@ -1158,6 +1201,7 @@ function Lezen({ data, persist, today }) {
           lezendId={lezend ? lezend.id : null}
           zetPagina={zetPagina}
           voegNotitie={voegNotitie}
+          wijzigNotitie={wijzigNotitie}
           wisNotitie={wisNotitie}
           nuLezen={nuLezen}
           wijzig={wijzig}
@@ -1182,12 +1226,32 @@ function NuLezend({ boek, stand, vorige, zetPagina, opendetail }) {
   return (
     <div>
       <div style={{ ...label, color: C.brass }}>Nu aan het lezen</div>
-      <h2
-        onClick={opendetail}
-        style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 26, fontWeight: 400, color: C.ink, margin: "10px 0 20px", lineHeight: 1.25, cursor: "pointer" }}
-      >
-        {boek.titel}
-      </h2>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 12, margin: "10px 0 20px" }}>
+        <h2
+          onClick={opendetail}
+          style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 26, fontWeight: 400, color: C.ink, margin: 0, lineHeight: 1.25, cursor: "pointer", flex: 1 }}
+        >
+          {boek.titel}
+        </h2>
+        <button
+          onClick={opendetail}
+          title="Dit boek"
+          aria-label="Dit boek"
+          style={{
+            flexShrink: 0,
+            marginTop: 6,
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            padding: "4px 0 4px 10px",
+            lineHeight: 0,
+          }}
+        >
+          <svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke={C.faint} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M1.4 1.4L6.6 7L1.4 12.6" />
+          </svg>
+        </button>
+      </div>
 
       {teGaan ? (
         <div>
@@ -1238,6 +1302,22 @@ function NuLezend({ boek, stand, vorige, zetPagina, opendetail }) {
 
 /* een plank met ruggen */
 function Plank({ titel, boeken, leeg, onKies, gedimd }) {
+  // de ruggen verdelen zich over meerdere planken zodra er één vol is
+  const rijen = [];
+  let rij = [];
+  let breedte = 0;
+  boeken.forEach((b) => {
+    const dik = Math.max(26, Math.min(46, Math.round(b.paginas / 11)));
+    if (breedte + dik > 268 && rij.length) {
+      rijen.push(rij);
+      rij = [];
+      breedte = 0;
+    }
+    rij.push({ ...b, dik });
+    breedte += dik + 6;
+  });
+  if (rij.length) rijen.push(rij);
+
   return (
     <div>
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
@@ -1248,55 +1328,65 @@ function Plank({ titel, boeken, leeg, onKies, gedimd }) {
       </div>
 
       {boeken.length ? (
-        <div style={{ display: "flex", alignItems: "flex-end", gap: 6, marginTop: 14, overflowX: "auto", paddingBottom: 2 }}>
-          {boeken.map((b, n) => {
-            const dik = Math.max(26, Math.min(46, Math.round(b.paginas / 11)));
-            const hoog = 116 + ((b.titel.length + b.paginas) % 4) * 7;
-            return (
-              <button
-                key={b.id}
-                onClick={() => onKies(b)}
-                title={b.titel}
-                style={{
-                  flex: "0 0 auto",
-                  width: dik,
-                  height: hoog,
-                  border: "1px solid " + C.oak,
-                  background: n % 2 ? C.bg : C.paper,
-                  opacity: gedimd ? 0.6 : 1,
-                  cursor: "pointer",
-                  padding: 0,
-                  position: "relative",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  overflow: "hidden",
-                }}
-              >
-                <span style={{ position: "absolute", left: 0, right: 0, top: 14, height: 1, background: C.brass, opacity: 0.75 }} />
-                <span style={{ position: "absolute", left: 0, right: 0, top: 18, height: 1, background: C.brass, opacity: 0.4 }} />
-                <span style={{ position: "absolute", left: 0, right: 0, bottom: 14, height: 1, background: C.brass, opacity: 0.75 }} />
-                <span style={{ position: "absolute", left: 0, right: 0, bottom: 18, height: 1, background: C.brass, opacity: 0.4 }} />
-                <span
-                  style={{
-                    fontFamily: "'EB Garamond',Georgia,serif",
-                    fontSize: 12.5,
-                    color: C.ink,
-                    writingMode: "vertical-rl",
-                    transform: "rotate(180deg)",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    maxHeight: hoog - 46,
-                    padding: "0 2px",
-                  }}
-                >
-                  {b.titel}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+        rijen.map((rij, ri) => (
+          <div key={ri}>
+            <div style={{ display: "flex", alignItems: "flex-end", gap: 6, marginTop: ri === 0 ? 14 : 22 }}>
+              {rij.map((b, n) => {
+                const hoog = 116 + ((b.titel.length + b.paginas) % 4) * 7;
+                return (
+                  <button
+                    key={b.id}
+                    onClick={() => onKies(b)}
+                    title={b.titel}
+                    style={{
+                      flex: "0 0 auto",
+                      width: b.dik,
+                      height: hoog,
+                      border: "1px solid " + C.oak,
+                      background: n % 2 ? C.bg : C.paper,
+                      opacity: gedimd ? 0.6 : 1,
+                      cursor: "pointer",
+                      padding: 0,
+                      position: "relative",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <span style={{ position: "absolute", left: 0, right: 0, top: 14, height: 1, background: C.brass, opacity: 0.75 }} />
+                    <span style={{ position: "absolute", left: 0, right: 0, top: 18, height: 1, background: C.brass, opacity: 0.4 }} />
+                    <span style={{ position: "absolute", left: 0, right: 0, bottom: 14, height: 1, background: C.brass, opacity: 0.75 }} />
+                    <span style={{ position: "absolute", left: 0, right: 0, bottom: 18, height: 1, background: C.brass, opacity: 0.4 }} />
+                    <span
+                      style={{
+                        fontFamily: "'EB Garamond',Georgia,serif",
+                        fontSize: 12.5,
+                        color: C.ink,
+                        writingMode: "vertical-rl",
+                        transform: "rotate(180deg)",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        maxHeight: hoog - 46,
+                        padding: "0 2px",
+                      }}
+                    >
+                      {b.titel}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            {ri < rijen.length - 1 && (
+              <div style={{ position: "relative" }}>
+                <div style={{ height: 2, background: C.oak, opacity: 0.85 }} />
+                <div style={{ position: "absolute", left: 0, top: 2, width: 2, height: 7, background: C.oak, opacity: 0.6 }} />
+                <div style={{ position: "absolute", right: 0, top: 2, width: 2, height: 7, background: C.oak, opacity: 0.6 }} />
+              </div>
+            )}
+          </div>
+        ))
       ) : (
         <div style={{ height: 96, display: "flex", alignItems: "flex-end", paddingBottom: 10 }}>
           <p style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 16, color: C.faint, fontStyle: "italic", margin: 0 }}>
@@ -1316,12 +1406,13 @@ function Plank({ titel, boeken, leeg, onKies, gedimd }) {
 }
 
 /* het venster bij een boek: een korte lijst met wat je kunt doen */
-function Detail({ boek, stand, lezendId, zetPagina, voegNotitie, wisNotitie, nuLezen, wijzig, onSluit, onVerwijder }) {
+function Detail({ boek, stand, lezendId, zetPagina, voegNotitie, wijzigNotitie, wisNotitie, nuLezen, wijzig, onSluit, onVerwijder }) {
   const [pagina, setPagina] = useState(String(stand || ""));
   const [sub, setSub] = useState(null);          // "notities", "beginnen" of "weg"
   const [tempo, setTempo] = useState(String(boek.perDag || 10));
   const [nPagina, setNPagina] = useState("");
   const [nTekst, setNTekst] = useState("");
+  const [bewerk, setBewerk] = useState(null);   // notitie die je aanpast
 
   const notities = (boek.notities || []).slice().reverse();
   const voortgang = Math.min(1, stand / (boek.paginas || 1));
@@ -1413,23 +1504,82 @@ function Detail({ boek, stand, lezendId, zetPagina, voegNotitie, wisNotitie, nuL
         <Venster kop="Notities" onSluit={() => setSub(null)}>
           {notities.length ? (
             <div style={{ marginBottom: 22 }}>
-              {notities.map((n) => (
-                <div key={n.id} style={{ padding: "12px 0 12px 14px", borderLeft: "1px solid " + C.brass, borderBottom: "1px solid " + C.line, marginBottom: 2 }}>
-                  <p style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 18, lineHeight: 1.55, color: C.ink, margin: 0, whiteSpace: "pre-wrap" }}>
-                    {n.tekst}
-                  </p>
-                  <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginTop: 6 }}>
-                    <span style={{ ...label, fontSize: 9, color: C.brass }}>{n.pagina ? "blz. " + n.pagina : ""}</span>
-                    <span style={{ ...label, fontSize: 9, color: C.faint }}>{n.datum}</span>
-                    <button
-                      onClick={() => wisNotitie(boek.id, n.id)}
-                      style={{ ...label, fontSize: 9, marginLeft: "auto", background: "none", border: "none", color: C.faint, cursor: "pointer", padding: 0 }}
-                    >
-                      weg
-                    </button>
+              {notities.map((n) =>
+                bewerk && bewerk.id === n.id ? (
+                  <div key={n.id} style={{ padding: "12px 0 16px 14px", borderLeft: "1px solid " + C.brass, borderBottom: "1px solid " + C.line, marginBottom: 2 }}>
+                    <textarea
+                      value={bewerk.tekst}
+                      onChange={(e) => setBewerk({ ...bewerk, tekst: e.target.value })}
+                      rows={3}
+                      style={{ ...invoer, marginTop: 0, fontSize: 18, lineHeight: 1.55, resize: "vertical" }}
+                    />
+                    <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
+                      <input
+                        type="number"
+                        value={bewerk.pagina}
+                        onChange={(e) => setBewerk({ ...bewerk, pagina: e.target.value })}
+                        placeholder="blz."
+                        style={{
+                          width: 70,
+                          flexShrink: 0,
+                          boxSizing: "border-box",
+                          background: "transparent",
+                          border: "1px solid " + C.line,
+                          fontFamily: "'EB Garamond',Georgia,serif",
+                          fontSize: 16,
+                          color: C.ink,
+                          outline: "none",
+                          padding: "8px 0",
+                          textAlign: "center",
+                        }}
+                      />
+                      <button
+                        onClick={() => {
+                          wijzigNotitie(boek.id, n.id, {
+                            tekst: bewerk.tekst.trim(),
+                            pagina: parseInt(bewerk.pagina, 10) || null,
+                          });
+                          setBewerk(null);
+                        }}
+                        style={{ ...label, fontSize: 10, flex: 1, padding: "9px 0", background: "transparent", color: C.brass, border: "1px solid " + C.brass, cursor: "pointer" }}
+                      >
+                        Bewaren
+                      </button>
+                      <button
+                        onClick={() => setBewerk(null)}
+                        style={{ ...label, fontSize: 10, padding: "9px 14px", background: "transparent", color: C.soft, border: "1px solid " + C.line, cursor: "pointer" }}
+                      >
+                        Laat
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ) : (
+                  <div key={n.id} style={{ padding: "12px 0 12px 14px", borderLeft: "1px solid " + C.brass, borderBottom: "1px solid " + C.line, marginBottom: 2 }}>
+                    <p
+                      onClick={() => setBewerk({ id: n.id, tekst: n.tekst, pagina: n.pagina ? String(n.pagina) : "" })}
+                      style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 18, lineHeight: 1.55, color: C.ink, margin: 0, whiteSpace: "pre-wrap", cursor: "pointer" }}
+                    >
+                      {n.tekst}
+                    </p>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginTop: 6 }}>
+                      <span style={{ ...label, fontSize: 9, color: C.brass }}>{n.pagina ? "blz. " + n.pagina : ""}</span>
+                      <span style={{ ...label, fontSize: 9, color: C.faint }}>{n.datum}</span>
+                      <button
+                        onClick={() => setBewerk({ id: n.id, tekst: n.tekst, pagina: n.pagina ? String(n.pagina) : "" })}
+                        style={{ ...label, fontSize: 9, marginLeft: "auto", background: "none", border: "none", color: C.faint, cursor: "pointer", padding: 0 }}
+                      >
+                        wijzig
+                      </button>
+                      <button
+                        onClick={() => wisNotitie(boek.id, n.id)}
+                        style={{ ...label, fontSize: 9, background: "none", border: "none", color: C.faint, cursor: "pointer", padding: 0 }}
+                      >
+                        weg
+                      </button>
+                    </div>
+                  </div>
+                )
+              )}
             </div>
           ) : (
             <p style={{ fontFamily: "'EB Garamond',Georgia,serif", fontSize: 16, color: C.faint, fontStyle: "italic", margin: "0 0 20px" }}>
@@ -1929,11 +2079,10 @@ function Breath({ nachtstand }) {
 }
 
 /* ---------------- heatmap ---------------- */
-function Heatmap({ cells, habits }) {
+function Heatmap({ cells }) {
   const [gekozen, setGekozen] = useState(null);
-  const weken = [];
-  for (let i = 0; i < cells.length; i += 7) weken.push(cells.slice(i, i + 7));
-  const dagen = ["z", "m", "d", "w", "d", "v", "z"];
+  const dagen = cells.slice(-10);
+  const letters = ["z", "m", "d", "w", "d", "v", "z"];
 
   const omschrijf = (c) => {
     if (!c.rec) return "niets";
@@ -1947,45 +2096,56 @@ function Heatmap({ cells, habits }) {
 
   return (
     <div>
-      <div style={{ display: "flex", gap: 4, marginTop: 16, maxWidth: 268 }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 4, marginRight: 3 }}>
-          {dagen.map((d, i) => (
-            <div
-              key={i}
-              style={{ ...label, fontSize: 8, letterSpacing: 0, textTransform: "none", color: C.faint, height: 24, lineHeight: "24px" }}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginTop: 18 }}>
+        {dagen.map((c, i) => {
+          const vandaag = i === dagen.length - 1;
+          const aan = gekozen && gekozen.k === c.k;
+          const vol = c.v > 0;
+          return (
+            <button
+              key={c.k}
+              onClick={() => setGekozen(aan ? null : c)}
+              aria-label={c.k}
+              style={{
+                background: "none",
+                border: "none",
+                padding: 0,
+                cursor: "pointer",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 8,
+              }}
             >
-              {d}
-            </div>
-          ))}
-        </div>
-        {weken.map((w, wi) => (
-          <div key={wi} style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1 }}>
-            {Array.from({ length: 7 }).map((_, ri) => {
-              const c = w[ri];
-              if (!c) return <div key={ri} style={{ height: 24 }} />;
-              const aan = gekozen && gekozen.k === c.k;
-              return (
-                <button
-                  key={c.k}
-                  onClick={() => setGekozen(aan ? null : c)}
-                  aria-label={c.k}
-                  style={{
-                    height: 24,
-                    padding: 0,
-                    cursor: "pointer",
-                    background: c.v === 0 ? C.line : C.brass,
-                    opacity: c.v === 0 ? 0.45 : 0.3 + c.v * 0.7,
-                    border: aan ? "1px solid " + C.ink : "1px solid transparent",
-                    boxSizing: "border-box",
-                  }}
+              <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true">
+                {(vandaag || aan) && (
+                  <path d="M13 1.5 L24.5 13 L13 24.5 L1.5 13 Z" fill="none" stroke={aan ? C.ink : C.line} strokeWidth="1" />
+                )}
+                <path
+                  d="M13 5.5 L20.5 13 L13 20.5 L5.5 13 Z"
+                  fill={vol ? C.brass : "none"}
+                  fillOpacity={vol ? 0.35 + c.v * 0.65 : 0}
+                  stroke={vol ? "none" : C.line}
+                  strokeWidth="1.2"
                 />
-              );
-            })}
-          </div>
-        ))}
+              </svg>
+              <span
+                style={{
+                  ...label,
+                  fontSize: 8,
+                  letterSpacing: 0,
+                  textTransform: "none",
+                  color: vandaag ? C.ink : C.faint,
+                }}
+              >
+                {letters[c.d.getDay()]}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
-      <div style={{ ...label, fontSize: 9, letterSpacing: ".12em", color: C.faint, marginTop: 10, minHeight: 14 }}>
+      <div style={{ ...label, fontSize: 9, letterSpacing: ".12em", color: C.faint, marginTop: 12, minHeight: 14 }}>
         {gekozen
           ? gekozen.d.toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long" }) +
             " \u00b7 " +
